@@ -1,35 +1,38 @@
-<!DOCTYPE HTML5>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MiTiendita</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
     <nav class="navbar">
         <div class="logo">MiTiendita</div>
         <ul class="nav-links">
-            <li><a href="#" class="active">LogIn</a></li>
+            <li><a href="login-page" class="active">LogIn</a></li>
             <li>
-                <a href="#"></a>
+                <a href="#" aria-label="Inicio">Inicio</a>
             </li>
             <li>
-                <a href="#"></a>
+                <a href="#" aria-label="Categorías">Categorías</a>
             </li>
             <li><a href="#">Mas Comprados</a></li>
         </ul>
     </nav>
     <header class="main-container">
-        <h2 class="movie-row">Nuestros patrocinadores</h2>
-        <iframe src="https://www.youtube.com/watch?v=CzTPTHaVDz8" title="Nuestros patrocinadores" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture">
-        </iframe>
-
+        <h2 class="product-row">Nuestros patrocinadores</h2>
+        <video width="560" height="315">
+            <source src="scr/video.mp4" type="video/mp4">
+            <track kind="subtitles" src="scr/video.vtt" srclang="es" label="Español">
+            <track kind="descriptions" src="scr/video-descriptions.vtt" srclang="es" label="Descripción en español">
+            Tu navegador no admite la reproducción de video.
+        </video>
     </header>
     <main class="main-container">
-        <section class="movie-row">
+        <section class="product-row">
             <h2 class="row-title">Nuestros productos</h2>
             <div class="row-posters">
                 <img class="poster" src="https://placeholder.com" alt="Movie 1">

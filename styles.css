@@ -1,0 +1,350 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background-color: #141414;
+    color: #fff;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+:focus-visible {
+    outline: 2px solid #56f3f3;
+    outline-offset: 2px;
+}
+
+.navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 20px 4%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.6) 0%, transparent 50%);
+    z-index: 10;
+}
+
+.logo {
+    color: #56f3f3;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-right: 40px;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: #e5e5e5;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover,
+.nav-links .active {
+    color: #fff;
+}
+
+.hero-banner {
+    position: relative;
+    height: 80vh;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), #141414), url('https://placeholder.com') no-repeat center center/cover;
+    display: flex;
+    align-items: center;
+    padding-left: 4%;
+}
+
+.hero-content {
+    max-width: 500px;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+
+.btn {
+    border: none;
+    padding: 10px 25px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    font-family: inherit;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.btn-play {
+    background-color: #fff;
+    color: #000;
+}
+
+.btn-info {
+    background-color: rgba(109, 109, 110, 0.7);
+    color: #fff;
+}
+
+/* Utilidad para botones de ancho completo, como los del formulario de acceso */
+.btn-full {
+    width: 100%;
+    padding: 12px 25px;
+    font-size: 1.05rem;
+    margin-top: 10px;
+}
+
+.main-container {
+    padding: 0 4%;
+    margin-top: 100px;
+    position: relative;
+    z-index: 2;
+}
+
+.product-row {
+    margin-bottom: 40px;
+}
+
+.row-title {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+.row-posters {
+    display: flex;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    gap: 10px;
+    padding: 10px 0;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.row-posters::-webkit-scrollbar {
+    display: none;
+}
+
+.poster {
+    width: 250px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 4px;
+    transition: transform 0.4s ease;
+    cursor: pointer;
+}
+
+.poster:hover {
+    transform: scale(1.08);
+    z-index: 5;
+}
+
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 15%, rgba(86, 243, 243, 0.08), transparent 45%),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.1), #141414 65%);
+    z-index: -1;
+}
+
+.brand {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 20px 4%;
+    z-index: 10;
+}
+
+.brand span {
+    color: #56f3f3;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.auth-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 100px 4% 60px;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(37, 37, 37, 0.85);
+    border-radius: 4px;
+    padding: 40px 36px;
+}
+
+.auth-title {
+    font-size: 1.8rem;
+    margin-bottom: 6px;
+}
+
+.auth-subtitle {
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #e5e5e5;
+    margin-bottom: 28px;
+}
+
+.auth-footer {
+    margin-top: 26px;
+    font-size: 0.9rem;
+    color: #9a9a9a;
+}
+
+.auth-footer a {
+    color: #e5e5e5;
+    text-decoration: none;
+}
+
+.auth-footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+
+.field {
+    margin-bottom: 16px;
+}
+
+.field label {
+    display: block;
+    font-size: 0.85rem;
+    color: #e5e5e5;
+    margin-bottom: 6px;
+}
+
+.field input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 1rem;
+    font-family: inherit;
+    color: #fff;
+    background-color: rgba(109, 109, 110, 0.25);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.field input::placeholder {
+    color: #9a9a9a;
+}
+
+.field input:hover {
+    background-color: rgba(109, 109, 110, 0.35);
+}
+
+.field input:focus {
+    background-color: rgba(109, 109, 110, 0.35);
+    border-color: #56f3f3;
+}
+
+.field-error {
+    display: none;
+    font-size: 0.8rem;
+    color: #ff6b6b;
+    margin-top: 6px;
+}
+
+.field.has-error input {
+    border-color: #ff6b6b;
+}
+
+.field.has-error .field-error {
+    display: block;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 22px 0;
+    color: #9a9a9a;
+    font-size: 0.85rem;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.row-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #e5e5e5;
+    margin-bottom: 22px;
+}
+
+.row-between a {
+    color: #56f3f3;
+    text-decoration: none;
+}
+
+.row-between a:hover {
+    text-decoration: underline;
+}
+
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.checkbox-row input {
+    width: 15px;
+    height: 15px;
+    accent-color: #56f3f3;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    .field input,
+    .poster {
+        transition: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: 32px 24px;
+    }
+
+    .hero-title {
+        font-size: 2.4rem;
+    }
+}
