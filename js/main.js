@@ -1,8 +1,10 @@
 // --- DATOS DE EJEMPLO Y LOCALSTORAGE ---
 const productosData = [
-    { id: 1, nombre: "clonazepam 10 mg", precio: 1200, img: "https://via.placeholder.com/150" },
-    { id: 2, nombre: "SIMIcondon", precio: 800, img: "https://via.placeholder.com/150" },
-    { id: 3, nombre: "Besuper (Pañales)", precio: 1599990, img: "https://via.placeholder.com/150" }
+    { id: 1, nombre: "clonazepam 0,25 mg", precio: 15000, img: "./src/clonade025.png" },
+    { id: 2, nombre: "SIMIcondon", precio: 3500, img: "./src/condon-pro-max.png" },
+    { id: 1, nombre: "Pediashure", precio: 15000, img: "./src/alo.png" },
+    { id: 1, nombre: "clonazepam 0,25 mg", precio: 15000, img: "./src/clonade025.png" },
+    { id: 3, nombre: "Besuper (Pañales)", precio: 1599990, img: "./src/nicolasantoniopizarroholmer.png" }
 ];
 
 const regionesComunas = [
@@ -43,7 +45,6 @@ function agregarAlCarrito(id) {
         carrito.push(prod);
         localStorage.setItem("carrito", JSON.stringify(carrito));
         actualizarCarritoContador();
-        alert(`${prod.nombre} añadido al carrito.`);
     }
 }
 

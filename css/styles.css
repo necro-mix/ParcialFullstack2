@@ -4,9 +4,9 @@
 
 /* Variables globales de color y estilo */
 :root {
-  --bg-main: #334155;          /* Fondo general gris pizarra muy claro */
+  --bg-main: #4b596d;          /* Fondo general gris pizarra muy claro */
   --bg-card: #e2e8f0;          /* Fondo de elementos/tarjetas */
-  --text-primary: #5a687c;      /* Texto principal gris oscuro (suave al ojo) */
+  --text-primary: #455368;      /* Texto principal gris oscuro (suave al ojo) */
   --text-muted: #566d74;        /* Texto secundario / bordes activos */
   --border-color: #000000;      /* Bordes sutiles de contraste medio */
   --accent-color: #5fb1b1;      /* Color de acento neutro */
