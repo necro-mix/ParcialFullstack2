@@ -1,50 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MiTiendita</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Farmacia de raza</title>
+    <link rel="stylesheet" href="css/styles.css">
 </head>
-
 <body>
-    <nav class="navbar">
-        <div class="logo">MiTiendita</div>
-        <ul class="nav-links">
-            <li><a href="./login.html" class="active">LogIn</a></li>
-            <li>
-                <a href="./index.html" aria-label="Inicio">Inicio</a>
-            </li>
-            <li>
-                <a href="./categories.html" aria-label="Categorías">Categorías</a>
-            </li>
-            <li><a href="./most-purchased.html">Mas Comprados</a></li>
-        </ul>
-    </nav>
-    <header class="main-container">
-        <h2 class="product-row">Nuestros patrocinadores</h2>
-        <video width="560" height="315" controls autoplay muted loop>
-            <source src="./src/video.mp4" type="video/mp4">
-            <track kind="subtitles" src="./src/video.vtt" srclang="es" label="Español">
-            <track kind="descriptions" src="./src/video-descriptions.vtt" srclang="es" label="Descripción en español">
-            Tu navegador no admite la reproducción de video.
-        </video>
+    <header class="navbar">
+        <div class="logo">
+            <h2>UnaFarmaciaPeroDeRazaRaaaaza</h2>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="productos.html">Productos</a>
+            <a href="nosotros.html">Nosotros</a>
+            <a href="blogs.html">Blogs</a>
+            <a href="contacto.html">Contacto</a>
+            <a href="login.html">Iniciar Sesión</a>
+            <a href="registro.html">Registrarse</a>
+        </nav>
+        <div class="cart-status">
+            <span>🛒 Carrito (<span id="cart-count">0</span>)</span>
+        </div>
     </header>
-    <main class="main-container">
-        <section class="product-row">
-            <h2 class="row-title">Nuestros productos</h2>
-            <div class="row-posters">
-                <img class="poster" src="./src/product1.jpg" alt="Movie 1">
-                <img class="poster" src="./src/product2.jpg" alt="Movie 2">
-                <img class="poster" src="./src/product3.jpg" alt="Movie 3">
-                <img class="poster" src="./src/product4.jpg" alt="Movie 4">
-                <img class="poster" src="./src/product5.jpg" alt="Movie 5">
-                <img class="poster" src="./src/product6.jpg" alt="Movie 6">
-            </div>
+
+    <main class="container">
+        <section class="hero">
+            <h1>Bienvenido a Nuestra Tienda Online</h1>
+            <p>Encuentra los mejores productos al mejor precio.</p>
         </section>
+
+        <section class="products-grid" id="products-container">
+            </section>
     </main>
 
-</body>
+    <footer>
+        <p>&copy; 2026 MiTienda - Todos los derechos reservados.</p>
+    </footer>
 
+    <script src="js/main.js"></script>
+</body>
 </html>
