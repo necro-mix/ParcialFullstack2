@@ -41,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cargarProductos();
     cargarRegiones();
     configurarValidacionRegistro();
+    configurarClicker();
 });
 
 // EFECTO DESFASE HACIA ARRIBA EN SCROLLDOWN
@@ -74,6 +75,22 @@ function cargarProductos() {
         `;
         container.appendChild(div);
     });
+}
+
+function configurarClicker() {
+    const boton = document.getElementById("clicker");
+    const contador = document.getElementById("clicker-count");
+
+    if (!boton || !contador) return;
+
+    let clicks = Number(localStorage.getItem("clicker")) || 0;
+    contador.textContent = clicks;
+
+    boton.addEventListener("click", () => {
+        clicks++;
+        contador.textContent = clicks;
+        localStorage.setItem("clicker", clicks);
+     });
 }
 
 function agregarAlCarrito(id) {
