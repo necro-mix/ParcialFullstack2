@@ -1,10 +1,34 @@
-// --- DATOS DE EJEMPLO Y LOCALSTORAGE ---
 const productosData = [
-    { id: 1, nombre: "clonazepam 0,25 mg", precio: 15000, img: "./src/clonade025.png" },
-    { id: 2, nombre: "SIMIcondon", precio: 3500, img: "./src/condon-pro-max.png" },
-    { id: 1, nombre: "Pediashure", precio: 15000, img: "./src/alo.png" },
-    { id: 1, nombre: "clonazepam 0,25 mg", precio: 15000, img: "./src/clonade025.png" },
-    { id: 3, nombre: "Besuper (Pañales)", precio: 1599990, img: "./src/nicolasantoniopizarroholmer.png" }
+    { 
+        id: 1, 
+        nombre: "Clonazepam 0.25 mg (Bioequivalente)", 
+        precio: 15000, 
+        img: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=500" 
+    },
+    { 
+        id: 2, 
+        nombre: "Preservativo SIMIcondon Pro Pack x12", 
+        precio: 3500, 
+        img: "https://images.unsplash.com/photo-1584017911766-d451b3d0e843?auto=format&fit=crop&q=80&w=500" 
+    },
+    { 
+        id: 3, 
+        nombre: "Suplemento Nutricional Pediasure 900g", 
+        precio: 15000, 
+        img: "https://images.unsplash.com/photo-1550572017-edd951aa8f72?auto=format&fit=crop&q=80&w=500" 
+    },
+    { 
+        id: 4, 
+        nombre: "Complejo Multivitamínico Premium", 
+        precio: 22990, 
+        img: "https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&q=80&w=500" 
+    },
+    { 
+        id: 5, 
+        nombre: "Pañales Premium Besuper Talla M x80", 
+        precio: 18990, 
+        img: "https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&q=80&w=500" 
+    }
 ];
 
 const regionesComunas = [
@@ -19,7 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarValidacionRegistro();
 });
 
-// --- LISTAR PRODUCTOS Y MANEJO DEL CARRITO ---
+// EFECTO DESFASE HACIA ARRIBA EN SCROLLDOWN
+window.addEventListener("scroll", () => {
+    const bg = document.getElementById("hero-bg");
+    if (bg) {
+        const scrolled = window.scrollY;
+        bg.style.transform = `translateY(-${scrolled * 0.45}px)`;
+    }
+});
+
+// --- RENDERIZADO DE PRODUCTOS (SIN ETIQUETAS DE DISPONIBILIDAD) ---
 function cargarProductos() {
     const container = document.getElementById("products-container");
     if (!container) return;
@@ -29,10 +62,15 @@ function cargarProductos() {
         const div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
-            <img src="${prod.img}" alt="${prod.nombre}">
+            <div class="card-img-wrapper">
+                <img src="${prod.img}" alt="${prod.nombre}" loading="lazy">
+            </div>
             <h3>${prod.nombre}</h3>
-            <p>$${prod.precio}</p>
-            <button class="btn-add" onclick="agregarAlCarrito(${prod.id})">Añadir al Carrito</button>
+            <p>$${prod.precio.toLocaleString('es-CL')}</p>
+            <button class="btn-add" onclick="agregarAlCarrito(${prod.id})">
+                <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                Añadir al Carrito
+            </button>
         `;
         container.appendChild(div);
     });
@@ -56,7 +94,6 @@ function actualizarCarritoContador() {
     }
 }
 
-// --- CASCADA DE REGIÓN Y COMUNA ---
 function cargarRegiones() {
     const selectRegion = document.getElementById("region");
     const selectComuna = document.getElementById("comuna");
@@ -90,7 +127,6 @@ function cargarRegiones() {
     });
 }
 
-// --- VALIDACIONES DE FORMULARIO ---
 function configurarValidacionRegistro() {
     const form = document.getElementById("form-registro");
     if (!form) return;
@@ -99,18 +135,16 @@ function configurarValidacionRegistro() {
         e.preventDefault();
         let esValido = true;
 
-        // Validar RUN
         const runInput = document.getElementById("run");
         const runError = document.getElementById("error-run");
-        const runRegex = /^[0-9]{7,8}[0-9kK]{1}$/; // Entre 7 y 9 caracteres sin puntos ni guión
+        const runRegex = /^[0-9]{7,8}[0-9kK]{1}$/;
         if (!runRegex.test(runInput.value.trim())) {
-            runError.textContent = "RUN inválido. Ingrese entre 7 y 9 caracteres, sin puntos ni guión.";
+            runError.textContent = "RUN inválido. Ingrese entre 7 y 9 caracteres sin puntos ni guión.";
             esValido = false;
         } else {
             runError.textContent = "";
         }
 
-        // Validar Correo
         const correoInput = document.getElementById("correo");
         const correoError = document.getElementById("error-correo");
         const correoVal = correoInput.value.trim();
@@ -119,14 +153,14 @@ function configurarValidacionRegistro() {
                                  correoVal.endsWith("@gmail.com");
 
         if (!correoVal || !dominioPermitido || correoVal.length > 100) {
-            correoError.textContent = "El correo debe terminar en @duoc.cl, @profesor.duoc.cl o @gmail.com (Máx 100 caracteres).";
+            correoError.textContent = "El correo debe terminar en @duoc.cl, @profesor.duoc.cl o @gmail.com.";
             esValido = false;
         } else {
             correoError.textContent = "";
         }
 
         if (esValido) {
-            alert("Formulario enviado con éxito.");
+            alert("Cuenta registrada con éxito.");
             form.reset();
         }
     });
