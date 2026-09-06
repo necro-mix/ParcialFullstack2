@@ -51,11 +51,8 @@ const regionesComunas = [
 document.addEventListener("DOMContentLoaded", () => {
     actualizarCarritoContador();
     cargarProductos();
-    configurarBusqueda();
-    cargarCarrito();
     cargarRegiones();
     configurarValidacionRegistro();
-    configurarFormulariosAdicionales();
     configurarClicker();
 });
 
@@ -69,25 +66,12 @@ window.addEventListener("scroll", () => {
 });
 
 // --- RENDERIZADO DE PRODUCTOS (SIN ETIQUETAS DE DISPONIBILIDAD) ---
-function cargarProductos(termino = "") {
+function cargarProductos() {
     const container = document.getElementById("products-container");
     if (!container) return;
 
-    const busqueda = termino
-        .trim()
-        .toLocaleLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    const productosFiltrados = productosData.filter(prod => {
-        const nombre = prod.nombre
-            .toLocaleLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
-        return nombre.includes(busqueda);
-    });
-
     container.innerHTML = "";
-    productosFiltrados.forEach(prod => {
+    productosData.forEach(prod => {
         const div = document.createElement("div");
         div.className = "card";
         div.innerHTML = `
@@ -102,28 +86,6 @@ function cargarProductos(termino = "") {
             </button>
         `;
         container.appendChild(div);
-    });
-
-    if (productosFiltrados.length === 0) {
-        container.innerHTML = "<p>No se encontraron productos para esa búsqueda.</p>";
-    }
-}
-
-function configurarBusqueda() {
-    const input = document.getElementById("product-search-input");
-    const button = document.getElementById("product-search-button");
-    const container = document.getElementById("products-container");
-
-    if (!input || !button || !container) return;
-
-    const buscar = () => {
-        cargarProductos(input.value);
-        container.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
-
-    button.addEventListener("click", buscar);
-    input.addEventListener("keydown", event => {
-        if (event.key === "Enter") buscar();
     });
 }
 
@@ -159,54 +121,6 @@ function actualizarCarritoContador() {
         const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
         cartCount.textContent = carrito.length;
     }
-}
-
-function cargarCarrito() {
-    const container = document.getElementById("cart-items");
-    const totalElement = document.getElementById("cart-total");
-    const emptyMessage = document.getElementById("cart-empty");
-    const clearButton = document.getElementById("clear-cart");
-
-    if (!container || !totalElement || !emptyMessage || !clearButton) return;
-
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-    container.innerHTML = "";
-    let total = 0;
-
-    carrito.forEach((producto, index) => {
-        total += producto.precio;
-        const item = document.createElement("article");
-        item.className = "cart-item";
-        item.innerHTML = `
-            <img src="${producto.src}" alt="${producto.nombre}">
-            <div class="cart-item-info">
-                <h3>${producto.nombre}</h3>
-                <p>$${producto.precio.toLocaleString("es-CL")}</p>
-            </div>
-            <button class="cart-remove" type="button" data-index="${index}">Eliminar</button>
-        `;
-        container.appendChild(item);
-    });
-
-    totalElement.textContent = `$${total.toLocaleString("es-CL")}`;
-    emptyMessage.hidden = carrito.length > 0;
-    clearButton.disabled = carrito.length === 0;
-
-    container.querySelectorAll(".cart-remove").forEach(button => {
-        button.addEventListener("click", () => {
-            const productos = JSON.parse(localStorage.getItem("carrito")) || [];
-            productos.splice(Number(button.dataset.index), 1);
-            localStorage.setItem("carrito", JSON.stringify(productos));
-            actualizarCarritoContador();
-            cargarCarrito();
-        });
-    });
-
-    clearButton.onclick = () => {
-        localStorage.removeItem("carrito");
-        actualizarCarritoContador();
-        cargarCarrito();
-    };
 }
 
 function cargarRegiones() {
@@ -250,11 +164,6 @@ function configurarValidacionRegistro() {
         e.preventDefault();
         let esValido = true;
 
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            esValido = false;
-        }
-
         const runInput = document.getElementById("run");
         const runError = document.getElementById("error-run");
         const runRegex = /^[0-9]{7,8}[0-9kK]{1}$/;
@@ -284,45 +193,4 @@ function configurarValidacionRegistro() {
             form.reset();
         }
     });
-}
-
-function configurarFormulariosAdicionales() {
-    const contacto = document.getElementById("form-contacto");
-    const contactoFeedback = document.getElementById("contacto-feedback");
-    if (contacto && contactoFeedback) {
-        contacto.addEventListener("submit", event => {
-            event.preventDefault();
-            if (!contacto.checkValidity()) {
-                contactoFeedback.textContent = "Completa todos los campos antes de enviar la consulta.";
-                contactoFeedback.classList.add("error-msg");
-                contacto.reportValidity();
-                return;
-            }
-            contactoFeedback.textContent = "Tu consulta fue enviada correctamente.";
-            contactoFeedback.classList.remove("error-msg");
-            contacto.reset();
-        });
-    }
-
-    const login = document.getElementById("form-login");
-    const loginFeedback = document.getElementById("login-feedback");
-    if (login && loginFeedback) {
-        login.addEventListener("submit", event => {
-            event.preventDefault();
-            const correo = document.getElementById("login-correo");
-            if (!login.checkValidity()) {
-                loginFeedback.textContent = "Ingresa un correo válido y una contraseña de 4 a 10 caracteres.";
-                loginFeedback.classList.add("error-msg");
-                login.reportValidity();
-                return;
-            }
-            if (!correo.value.endsWith("@duoc.cl") && !correo.value.endsWith("@profesor.duoc.cl") && !correo.value.endsWith("@gmail.com")) {
-                loginFeedback.textContent = "Usa un correo @duoc.cl, @profesor.duoc.cl o @gmail.com.";
-                loginFeedback.classList.add("error-msg");
-                return;
-            }
-            loginFeedback.textContent = "Inicio de sesión validado correctamente.";
-            loginFeedback.classList.remove("error-msg");
-        });
-    }
 }

@@ -32,45 +32,45 @@
             <form id="form-registro" novalidate class="form-grid">
                 <div class="form-group">
                     <label for="run">RUN (sin puntos ni guión)*</label>
-                    <input type="text" id="run" required maxlength="9" placeholder="19011022K">
+                    <input type="text" id="run" required maxlength="9" autocomplete="off" placeholder="19011022K">
                     <small class="error-msg" id="error-run"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="correo">Correo Electrónico*</label>
-                    <input type="email" id="correo" required maxlength="100" placeholder="usuario@duoc.cl">
+                    <input type="email" id="correo" required maxlength="100" autocomplete="email" placeholder="usuario@duoc.cl">
                     <small class="error-msg" id="error-correo"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="nombre">Nombre*</label>
-                    <input type="text" id="nombre" required maxlength="50" placeholder="Juan">
+                    <input type="text" id="nombre" required maxlength="50" autocomplete="given-name" placeholder="Juan">
                     <small class="error-msg" id="error-nombre"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="apellidos">Apellidos*</label>
-                    <input type="text" id="apellidos" required maxlength="100" placeholder="Pérez González">
+                    <input type="text" id="apellidos" required maxlength="100" autocomplete="family-name" placeholder="Pérez González">
                     <small class="error-msg" id="error-apellidos"></small>
                 </div>
 
                 <div class="form-group">
                     <label for="region">Región Domiciliaria*</label>
-                    <select id="region" required>
+                    <select id="region" autocomplete="address-level1" required>
                         <option value="">-- Seleccione una Región --</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="comuna">Comuna Domiciliaria*</label>
-                    <select id="comuna" required disabled>
+                    <select id="comuna" autocomplete="address-level2" required disabled>
                         <option value="">-- Seleccione una Comuna --</option>
                     </select>
                 </div>
 
                 <div class="form-group full-width">
                     <label for="direccion">Dirección Calle y Número*</label>
-                    <input type="text" id="direccion" required maxlength="300" placeholder="Av. Providencia 1234, Depto 502">
+                    <input type="text" id="direccion" required maxlength="300" autocomplete="street-address" placeholder="Av. Providencia 1234, Depto 502">
                     <small class="error-msg" id="error-direccion"></small>
                 </div>
 

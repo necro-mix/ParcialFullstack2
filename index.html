@@ -28,7 +28,6 @@
         
         <nav class="nav-links">
             <a href="index.html" class="active">Inicio</a>
-            <a href="clicker.html">Productos</a>
             <a href="nosotros.html">Nosotros</a>
             <a href="blogs.html">Salud & Blog</a>
             <a href="contacto.html">Contacto</a>
@@ -36,11 +35,11 @@
             <a href="registro.html">Crear Cuenta</a>
         </nav>
 
-        <button class="cart-status">
+        <a href="carrito.html" class="cart-status">
             <svg class="icon-svg" viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-9.83-3.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/></svg>
             <span>Mi Carrito</span>
             <span class="cart-badge" id="cart-count">0</span>
-        </button>
+        </a>
     </header>
 
     <!-- Parallax Hero Container -->
@@ -52,9 +51,9 @@
                 <h1>Tu salud en manos expertas, con entrega prioritaria.</h1>
                 <p>Accede a fármacos bioequivalentes, cuidado personal e insumos médicos con respaldo profesional y certificación oficial.</p>
                 
-                <div class="search-bar-fake">
-                    <input type="text" placeholder="Buscar por medicamento, principio activo o marca...">
-                    <button type="button">Buscar</button>
+                <div class="search-bar-fake" id="product-search">
+                    <input id="product-search-input" type="search" placeholder="Buscar por medicamento, principio activo o marca...">
+                    <button id="product-search-button" type="button">Buscar</button>
                 </div>
             </div>
             <div class="hero-image-wrapper">
@@ -78,6 +77,17 @@
             </section>
         </main>
     </div>
+
+    <section class="media-section container" aria-labelledby="health-video-title">
+        <div class="section-title">
+            <h3 id="health-video-title">Consejos para cuidar tu salud</h3>
+            <p>Información audiovisual para complementar tu bienestar.</p>
+        </div>
+        <video controls preload="metadata" poster="src/pediasure.png">
+            <source src="src/video.mp4" type="video/mp4">
+            Tu navegador no admite la reproducción de videos.
+        </video>
+    </section>
 
     <!-- Footer -->
     <footer>
@@ -106,9 +116,9 @@
             <div class="footer-col">
                 <h5>Legal & Calidad</h5>
                 <ul>
-                    <li><a href="#">Términos y Condiciones</a></li>
-                    <li><a href="#">Política de Privacidad</a></li>
-                    <li><a href="#">Resolución Sanitaria</a></li>
+                    <li><a href="index.html">Términos y Condiciones</a></li>
+                    <li><a href="index.html">Política de Privacidad</a></li>
+                    <li><a href="index.html">Resolución Sanitaria</a></li>
                 </ul>
             </div>
         </div>

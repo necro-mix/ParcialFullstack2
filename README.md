@@ -1,134 +1,58 @@
-# Farmacia De RazaRaza - Evaluación Parcial 1
+# Farmacia de Raza
 
-Este proyecto consiste en que tanto puede hacer un estudiante de informatica del duoc en 1 noche junto a claudio (El gratis), este proyecto está desarrollado segun rubrica y es una mezcla de html css y javascript (PorFavorDejenDeConfundirAlNiñoConJavaQueEsElTioALcholico)
+Sitio web frontend de una tienda online de productos de salud, desarrollado con HTML5, CSS3 y JavaScript.
 
----
+## Funcionalidades
 
-## Descripcion
+- Catálogo dinámico de productos con imágenes y precios.
+- Búsqueda por nombre, ignorando mayúsculas y tildes.
+- Carrito persistente con `localStorage`, contador, eliminación individual y vaciado.
+- Formularios de registro, contacto e inicio de sesión con validaciones JavaScript y mensajes personalizados.
+- Regiones y comunas cargadas dinámicamente.
+- Video local embebido en la página principal.
+- Navegación entre inicio, productos, nosotros, blog, contacto, registro, login y carrito.
+- Hoja de estilos externa y diseño responsive.
 
-El sistema esta organizado en dos grandes secciones:
-
-1. **Seccion Tienda**: Vista publica accesible por clientes donde se incluye la página principal, catalogo de productos, detalle de ítems, blog de noticias, formulario de contacto, registro de usuarios e inicio de sesión.
-
-
-2. **Seccion Administrador**: Interfaz de gestión protegida con menú lateral para administrar productos y usuarios, visualizar listados en tablas y gestionar roles del sistema (Administrador, Vendedor y Cliente).
-
-
-
----
-
-## Directorios
+## Estructura
 
 ```text
-mitienda/
-├── index.html                # Página principal (Home)[cite: 2]
-├── productos.html            # Catálogo general de productos[cite: 2]
-├── detalle-producto.html     # Detalle individual del producto[cite: 2]
-├── nosotros.html             # Información sobre la empresa y desarrolladores[cite: 2]
-├── blogs.html                # Listado de blogs/noticias[cite: 2]
-├── detalle-blog1.html        # Artículo informativo 1[cite: 2]
-├── detalle-blog2.html        # Artículo informativo 2[cite: 2]
-├── contacto.html             # Formulario de contacto[cite: 2]
-├── login.html                # Inicio de sesión[cite: 2]
-├── registro.html             # Registro público de usuarios[cite: 2]
-├── admin/
-│   ├── index.html            # Panel principal de administración[cite: 2]
-│   ├── usuarios.html         # Listado/Tabla de usuarios[cite: 2]
-│   ├── nuevo-usuario.html    # Formulario para crear o editar usuarios[cite: 2]
-│   ├── productos.html        # Listado/Tabla de productos[cite: 2]
-│   └── nuevo-producto.html   # Formulario para crear o editar productos[cite: 2]
+.
+├── index.html
+├── productos.html
+├── nosotros.html
+├── blogs.html
+├── contacto.html
+├── login.html
+├── registro.html
+├── carrito.html
 ├── css/
-│   └── styles.css            # Estilos globales responsivos y de contraste medio[cite: 2]
-└── js/
-    └── main.js               # Validaciones de formularios, cascada y LocalStorage[cite: 2]
-
+│   ├── styles.css
+│   └── clicker.css
+├── js/
+│   └── main.js
+└── src/
+    ├── *.png
+    └── video.mp4
 ```
 
----
+## Ejecución
 
-## Reglas del Negocio y Validaciones (JavaScript)
+Abre `index.html` directamente en el navegador o utiliza Live Server en Visual Studio Code. No se requieren dependencias externas.
 
-Las reglas de negocio implementadas en los formularios cubren las siguientes restricciones:
+## Tecnologías
 
-* **Registro de Usuario y Administrador de Usuarios**:
-* **RUT**: Campo requerido, sin puntos ni guión (ej: `19011022K`), de entre 7 y 9 caracteres.
+- HTML5 semántico: `header`, `nav`, `main`, `section`, `article`, `footer`, formularios y multimedia.
+- CSS3 externo con variables, grillas y diseño responsive.
+- JavaScript para renderizado, búsquedas, validaciones y `localStorage`.
+- Git y GitHub para el control de versiones.
 
+## Entregables
 
-* **Nombre y Apellidos**: Obligatorios; máximo 50 caracteres para el nombre y 100 para los apellidos.
+- Enlace público al repositorio GitHub.
+- Proyecto frontend comprimido.
+- Documento ERS: [ERS.md](ERS.md).
 
+## Equipo
 
-* **Correo Electrónico**: Requiere pertenecer a los dominios `@duoc.cl`, `@profesor.duoc.cl` o `@gmail.com` (máximo 100 caracteres).
-
-
-* **Región y Comuna**: Cascada en JavaScript que activa y carga dinámicamente las comunas según la región seleccionada.
-
-
-* **Dirección**: Requerida (máximo 300 caracteres).
-
-
-
-
-* **Inicio de Sesion**:
-* **Correo**: Requerido, validado con dominios `@duoc.cl`, `@profesor.duoc.cl` y `@gmail.com`.
-
-
-* **Contraseña**: Requerida, con una extensión entre 4 y 10 caracteres.
-
-
-
-
-* **Formulario de Contacto**:
-* **Nombre**: Requerido (máx. 100 caracteres).
-
-
-* **Correo**: Valida dominios permitidos (máx. 100 caracteres).
-
-
-* **Comentario**: Requerido (máx. 500 caracteres).
-
-
-
-
-* **Mantenedor de Productos**:
-* **Código**: Requerido, mínimo 3 caracteres.
-
-
-* **Nombre**: Requerido (máx. 100 caracteres).
-
-
-* **Precio y Stock**: Requeridos, valores numéricos mayores o iguales a 0.
-
-
-
-
-* **Carrito de Compras**:
-* Los productos añadidos se persisten mediante `localStorage` para mantener la información al recargar la página.
-
-
----
-
-## Instalación y Ejecución
-
-1. Clona el repositorio desde GitHub:
-```bash
-git clone https://github.com/tu-usuario/tu-repositorio.git
-
-```
-
-
-2. Accede a la carpeta del proyecto:
-```bash
-cd tu-repositorio
-
-```
-
-
-3. Abre el archivo `index.html` en el navegador de tu preferencia o utiliza una extensión de servidor local como *Live Server* en Visual Studio Code.
-
----
-
-## Integrantes del Equipo
-
-* **Samuel Jaraquemada.**
-
-* **Patricio **pon tu apellido aqui plsssss**.**
+- Samuel Jaraquemada
+- Completar con los nombres reales de los integrantes antes de entregar.
