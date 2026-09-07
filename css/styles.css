@@ -64,6 +64,15 @@ body {
   vertical-align: middle;
 }
 
+.sr-only {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  width: 1px;
+  clip: rect(0, 0, 0, 0);
+}
+
 /* Top Bar */
 .top-announcement {
   background: linear-gradient(90deg, var(--brand-navy) 0%, var(--brand-navy-light) 100%);
@@ -685,6 +694,23 @@ body {
 .form-group select:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+}
+
+.toggle-password {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-top: 0.35rem;
+  padding: 0;
+}
+
+.toggle-password:hover {
+  color: var(--primary-hover);
+  text-decoration: underline;
 }
 
 .error-msg {

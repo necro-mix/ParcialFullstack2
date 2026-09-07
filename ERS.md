@@ -1,4 +1,4 @@
-# ERS - Especificación de Requisitos del Software
+﻿# ERS - Especificación de Requisitos del Software
 
 ## 1. Identificación
 
@@ -56,6 +56,7 @@ Entregar una experiencia web clara para consultar productos de salud, buscar art
 ## 8. Criterios de aceptación
 
 - Los enlaces principales no deben apuntar a páginas inexistentes.
-- El catálogo, búsqueda, carrito, video y formularios deben funcionar al abrir `index.html`.
+- El catálogo, búsqueda, carrito, video y formularios deben funcionar al abrir `html/index.html`.
 - Los formularios no deben aceptar envíos incompletos o con formatos inválidos.
 - El proyecto debe incluir commits descriptivos y un repositorio remoto público antes de la entrega.
+

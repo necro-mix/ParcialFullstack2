@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmacia de Raza - Portal Oficial de Salud</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="../css/styles.css">
 </head>
 <body>
     <!-- Top Announcement Bar -->
@@ -52,6 +52,7 @@
                 <p>Accede a fármacos bioequivalentes, cuidado personal e insumos médicos con respaldo profesional y certificación oficial.</p>
                 
                 <div class="search-bar-fake" id="product-search">
+                    <label class="sr-only" for="product-search-input">Buscar productos</label>
                     <input id="product-search-input" type="search" placeholder="Buscar por medicamento, principio activo o marca...">
                     <button id="product-search-button" type="button">Buscar</button>
                 </div>
@@ -80,11 +81,12 @@
 
     <section class="media-section container" aria-labelledby="health-video-title">
         <div class="section-title">
-            <h3 id="health-video-title">Consejos para cuidar tu salud</h3>
-            <p>Información audiovisual para complementar tu bienestar.</p>
+            <h3 id="health-video-title">Video embedido porque era requisito</h3>
+            <p>Y como era requisito aqui tiene un vdeo ytph de un episodio de hagalo usted mismo </p>
         </div>
-        <video controls preload="metadata" poster="src/pediasure.png">
-            <source src="src/video.mp4" type="video/mp4">
+        <video controls preload="metadata" poster="../src/pediasure.png">
+            <source src="../src/video.mp4" type="video/mp4">
+            <track kind="captions" src="../src/video-captions.vtt" srclang="es" label="Español">
             Tu navegador no admite la reproducción de videos.
         </video>
     </section>
@@ -128,6 +130,7 @@
         </div>
     </footer>
 
-    <script src="js/main.js"></script>
+    <script src="../js/main.js"></script>
 </body>
 </html>
+

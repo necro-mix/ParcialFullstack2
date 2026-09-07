@@ -1,45 +1,45 @@
-const productosData = [
+﻿const productosData = [
     { 
         id: 1, 
         nombre: "Clonazepam 0.25 mg (Bioequivalente)", 
         precio: 15000, 
-        src: "src/clona.png" 
+        src: "../src/clona.png"
     },
     { 
         id: 2, 
         nombre: "Preservativo  masculino", 
         precio: 3500, 
-        src: "src/condon1.png" 
+        src: "../src/condon1.png"
     },
     { 
         id: 3, 
         nombre: "Preservativo SIMIcondon", 
         precio: 3500, 
-        src: "src/simicondon.png" 
+        src: "../src/simicondon.png"
     },
     { 
         id: 4, 
         nombre: "Suplemento Nutricional Pediasure 900g", 
         precio: 15000,
-        src: "src/pediasure.png" 
+        src: "../src/pediasure.png"
     },
     {
         id: 5, 
         nombre: "Pañales para adulto mayor", 
         precio: 22990, 
-        src: "src/pañalespawelito.png" 
+        src: "../src/pañalespawelito.png"
     },
     { 
         id: 6, 
         nombre: "Paracetamol 500 mg", 
-        precio: 22990, 
-        src: "src/paracetamol.png" 
+        precio: 1000, 
+        src: "../src/paracetamol.png"
     },
     { 
         id: 7, 
-        nombre: "Pañales Premium Besuper", 
-        precio: 18990, 
-        src: "src/pañales.png" 
+        nombre: "Pañales Premium Besuper  (son  mas  convenientes los condones)", 
+        precio: 9999999, 
+        src: "../src/pañales.png"
     }
 ];
 
@@ -165,7 +165,7 @@ function cargarCarrito() {
     const container = document.getElementById("cart-items");
     const totalElement = document.getElementById("cart-total");
     const emptyMessage = document.getElementById("cart-empty");
-    const clearButton = document.getElementById("clear-cart");
+    const clearButton = document.getElementById("clear-all");
 
     if (!container || !totalElement || !emptyMessage || !clearButton) return;
 
@@ -174,11 +174,13 @@ function cargarCarrito() {
     let total = 0;
 
     carrito.forEach((producto, index) => {
+        const productoCatalogo = productosData.find(item => item.id === producto.id);
+        const imagenProducto = productoCatalogo ? productoCatalogo.src : producto.src;
         total += producto.precio;
         const item = document.createElement("article");
         item.className = "cart-item";
         item.innerHTML = `
-            <img src="${producto.src}" alt="${producto.nombre}">
+            <img src="${imagenProducto}" alt="${producto.nombre}">
             <div class="cart-item-info">
                 <h3>${producto.nombre}</h3>
                 <p>$${producto.precio.toLocaleString("es-CL")}</p>
@@ -202,11 +204,16 @@ function cargarCarrito() {
         });
     });
 
-    clearButton.onclick = () => {
-        localStorage.removeItem("carrito");
-        actualizarCarritoContador();
+    clearButton.onclick = clearAllCarrito;
+}
+
+function clearAllCarrito() {
+    localStorage.removeItem("carrito");
+    actualizarCarritoContador();
+
+    if (document.getElementById("cart-items")) {
         cargarCarrito();
-    };
+    }
 }
 
 function cargarRegiones() {
@@ -246,9 +253,37 @@ function configurarValidacionRegistro() {
     const form = document.getElementById("form-registro");
     if (!form) return;
 
+    const contrasenaInput = document.getElementById("contrasena");
+    const confirmarContrasenaInput = document.getElementById("confirmar-contrasena");
+    const confirmarContrasenaError = document.getElementById("error-confirmar-contrasena");
+    const mostrarContrasena = document.getElementById("mostrar-contrasena");
+
+    mostrarContrasena.addEventListener("click", () => {
+        const mostrar = contrasenaInput.type === "password";
+        contrasenaInput.type = mostrar ? "text" : "password";
+        mostrarContrasena.textContent = mostrar ? "Ocultar contraseña" : "Mostrar contraseña";
+        mostrarContrasena.setAttribute("aria-pressed", String(mostrar));
+    });
+
+    const validarContrasenas = () => {
+        const coinciden = contrasenaInput.value === confirmarContrasenaInput.value;
+        const confirmacionIncompleta = confirmarContrasenaInput.value.length === 0;
+        const mensaje = confirmacionIncompleta || coinciden
+            ? ""
+            : "Las contraseñas no coinciden. Usa una contraseña igual en ambos campos.";
+
+        confirmarContrasenaInput.setCustomValidity(mensaje);
+        confirmarContrasenaError.textContent = mensaje;
+    };
+
+    contrasenaInput.addEventListener("input", validarContrasenas);
+    confirmarContrasenaInput.addEventListener("input", validarContrasenas);
+
     form.addEventListener("submit", (e) => {
         e.preventDefault();
         let esValido = true;
+
+        validarContrasenas();
 
         if (!form.checkValidity()) {
             form.reportValidity();
@@ -277,6 +312,14 @@ function configurarValidacionRegistro() {
             esValido = false;
         } else {
             correoError.textContent = "";
+        }
+
+        const contrasenaError = document.getElementById("error-contrasena");
+        if (contrasenaInput.validity.tooShort || contrasenaInput.validity.tooLong) {
+            contrasenaError.textContent = "La contraseña debe tener entre 4 y 10 caracteres.";
+            esValido = false;
+        } else {
+            contrasenaError.textContent = "";
         }
 
         if (esValido) {

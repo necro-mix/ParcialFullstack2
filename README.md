@@ -1,4 +1,4 @@
-# Farmacia de Raza
+﻿# Farmacia de Raza
 
 Sitio web frontend de una tienda online de productos de salud, desarrollado con HTML5, CSS3 y JavaScript.
 
@@ -17,27 +17,29 @@ Sitio web frontend de una tienda online de productos de salud, desarrollado con 
 
 ```text
 .
-├── index.html
-├── productos.html
-├── nosotros.html
-├── blogs.html
-├── contacto.html
-├── login.html
-├── registro.html
-├── carrito.html
-├── css/
-│   ├── styles.css
-│   └── clicker.css
-├── js/
-│   └── main.js
-└── src/
-    ├── *.png
-    └── video.mp4
++-- html/
+|   |-- index.html
+|   |-- productos.html
+|   |-- nosotros.html
+|   |-- blogs.html
+|   |-- contacto.html
+|   |-- login.html
+|   |-- registro.html
+|   |-- carrito.html
+|   `-- clicker.html
++-- css/
+|   |-- styles.css
+|   `-- clicker.css
++-- js/
+|   `-- main.js
+`-- src/
+    |-- *.png
+    `-- video.mp4
 ```
 
 ## Ejecución
 
-Abre `index.html` directamente en el navegador o utiliza Live Server en Visual Studio Code. No se requieren dependencias externas.
+Abre `html/index.html` directamente en el navegador o utiliza Live Server en Visual Studio Code. No se requieren dependencias externas.
 
 ## Tecnologías
 
@@ -56,3 +58,4 @@ Abre `index.html` directamente en el navegador o utiliza Live Server en Visual S
 
 - Samuel Jaraquemada
 - Completar con los nombres reales de los integrantes antes de entregar.
+
