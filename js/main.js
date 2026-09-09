@@ -48,7 +48,153 @@ const regionesComunas = [
     { region: "Valparaíso", comunas: ["Valparaíso", "Viña del Mar", "Quilpué"] }
 ];
 
+// ====== SISTEMA DE SESIÓN Y USUARIOS ======
+function obtenerUsuarioActual() {
+    const sesion = localStorage.getItem("sesionActiva");
+    return sesion ? JSON.parse(sesion) : null;
+}
+
+function estaLogueado() {
+    return obtenerUsuarioActual() !== null;
+}
+
+function cerrarSesion() {
+    localStorage.removeItem("sesionActiva");
+}
+
+function obtenerTodosLosUsuarios() {
+    const usuarios = localStorage.getItem("usuarios");
+    return usuarios ? JSON.parse(usuarios) : [];
+}
+
+function guardarUsuarios(usuarios) {
+    localStorage.setItem("usuarios", JSON.stringify(usuarios));
+}
+
+function usuarioExiste(correo) {
+    const usuarios = obtenerTodosLosUsuarios();
+    return usuarios.some(u => u.correo === correo);
+}
+
+function registrarUsuario(run, correo, contrasena) {
+    if (usuarioExiste(correo)) {
+        return { exito: false, mensaje: "El correo ya está registrado." };
+    }
+    
+    const usuarios = obtenerTodosLosUsuarios();
+    usuarios.push({ 
+        run, 
+        correo, 
+        contrasena,
+        rol: "usuario"  // Todos los nuevos usuarios son usuarios normales
+    });
+    guardarUsuarios(usuarios);
+    return { exito: true, mensaje: "Usuario registrado exitosamente." };
+}
+
+function iniciarSesion(correoInput, contrasenaInput) {
+    const usuarios = obtenerTodosLosUsuarios();
+    const usuario = usuarios.find(u => u.correo === correoInput || u.run === correoInput);
+    
+    if (!usuario) {
+        return { exito: false, mensaje: "Usuario no encontrado." };
+    }
+    
+    if (usuario.contrasena !== contrasenaInput) {
+        return { exito: false, mensaje: "Contraseña incorrecta." };
+    }
+    
+    // Guardar la sesión activa
+    localStorage.setItem("sesionActiva", JSON.stringify({
+        correo: usuario.correo,
+        run: usuario.run
+    }));
+    
+    return { exito: true, mensaje: "Inicio de sesión exitoso." };
+}
+
+// ====== FUNCIONES DE CARRITO POR USUARIO ======
+function obtenerKeyCarrito() {
+    const usuario = obtenerUsuarioActual();
+    if (!usuario) return null;
+    return `carrito_${usuario.correo}`;
+}
+
+function obtenerCarritoActual() {
+    const key = obtenerKeyCarrito();
+    if (!key) return [];
+    return JSON.parse(localStorage.getItem(key)) || [];
+}
+
+function guardarCarritoActual(carrito) {
+    const key = obtenerKeyCarrito();
+    if (!key) return;
+    localStorage.setItem(key, JSON.stringify(carrito));
+}
+
+// ====== SISTEMA DE ADMIN ======
+const ADMIN_DEFAULT = {
+    correo: "admin@duoc.cl",
+    run: "11111111K",
+    contrasena: "Admin123",
+    rol: "admin"
+};
+
+function inicializarAdminDefault() {
+    const usuarios = obtenerTodosLosUsuarios();
+    const adminExiste = usuarios.some(u => u.correo === ADMIN_DEFAULT.correo);
+    
+    if (!adminExiste) {
+        usuarios.push(ADMIN_DEFAULT);
+        guardarUsuarios(usuarios);
+    }
+}
+
+function esAdmin() {
+    const usuario = obtenerUsuarioActual();
+    if (!usuario) return false;
+    
+    const usuarios = obtenerTodosLosUsuarios();
+    const usuarioData = usuarios.find(u => u.correo === usuario.correo);
+    return usuarioData?.rol === "admin";
+}
+
+function mostrarOcultarAdminLink() {
+    const adminLink = document.getElementById("admin-link");
+    if (adminLink) {
+        adminLink.style.display = esAdmin() ? "inline-block" : "none";
+    }
+}
+
+// ====== FUNCIONES DE LOGOUT ======
+function logout() {
+    cerrarSesion();
+    mostrarOcultarLogout();
+    mostrarOcultarAdminLink();
+    alert("Sesión cerrada correctamente");
+    window.location.href = "index.html";
+}
+
+function mostrarOcultarLogout() {
+    const logoutBtn = document.getElementById("nav-logout");
+    const loginLink = document.getElementById("nav-login");
+    const registroLink = document.getElementById("nav-registro");
+    
+    const logueado = estaLogueado();
+    
+    if (logoutBtn) {
+        logoutBtn.style.display = logueado ? "inline" : "none";
+    }
+    if (loginLink) {
+        loginLink.style.display = logueado ? "none" : "inline";
+    }
+    if (registroLink) {
+        registroLink.style.display = logueado ? "none" : "inline";
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    inicializarAdminDefault();
     actualizarCarritoContador();
     cargarProductos();
     configurarBusqueda();
@@ -57,6 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
     configurarValidacionRegistro();
     configurarFormulariosAdicionales();
     configurarClicker();
+    mostrarOcultarAdminLink();
+    mostrarOcultarLogout();
 });
 
 // EFECTO DESFASE HACIA ARRIBA EN SCROLLDOWN
@@ -96,7 +244,7 @@ function cargarProductos(termino = "") {
             </div>
             <h3>${prod.nombre}</h3>
             <p>$${prod.precio.toLocaleString('es-CL')}</p>
-            <button class="btn-add" onclick="agregarAlCarrito(${prod.id})">
+            <button class="btn-add" onclick="agregarAlCarrito(${prod.id}, this)">
                 <svg class="icon-svg" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
                 Añadir al Carrito
             </button>
@@ -143,20 +291,37 @@ function configurarClicker() {
      });
 }
 
-function agregarAlCarrito(id) {
-    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+function agregarAlCarrito(id, boton) {
+    const usuario = obtenerUsuarioActual();
+    if (!usuario) {
+        alert("Debes iniciar sesión para agregar productos al carrito.");
+        window.location.href = "login.html";
+        return;
+    }
+    
+    let carrito = obtenerCarritoActual();
     const prod = productosData.find(p => p.id === id);
     if (prod) {
         carrito.push(prod);
-        localStorage.setItem("carrito", JSON.stringify(carrito));
+        guardarCarritoActual(carrito);
         actualizarCarritoContador();
+        
+        // Cambiar color del botón a verde por 1 segundo
+        if (boton) {
+            const colorOriginal = window.getComputedStyle(boton).backgroundColor;
+            boton.style.backgroundColor = "#4CAF50";
+            boton.style.transition = "background-color 0.3s ease";
+            setTimeout(() => {
+                boton.style.backgroundColor = colorOriginal;
+            }, 1000);
+        }
     }
 }
 
 function actualizarCarritoContador() {
     const cartCount = document.getElementById("cart-count");
     if (cartCount) {
-        const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+        const carrito = obtenerCarritoActual();
         cartCount.textContent = carrito.length;
     }
 }
@@ -169,7 +334,7 @@ function cargarCarrito() {
 
     if (!container || !totalElement || !emptyMessage || !clearButton) return;
 
-    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    const carrito = obtenerCarritoActual();
     container.innerHTML = "";
     let total = 0;
 
@@ -196,9 +361,9 @@ function cargarCarrito() {
 
     container.querySelectorAll(".cart-remove").forEach(button => {
         button.addEventListener("click", () => {
-            const productos = JSON.parse(localStorage.getItem("carrito")) || [];
+            const productos = obtenerCarritoActual();
             productos.splice(Number(button.dataset.index), 1);
-            localStorage.setItem("carrito", JSON.stringify(productos));
+            guardarCarritoActual(productos);
             actualizarCarritoContador();
             cargarCarrito();
         });
@@ -208,7 +373,10 @@ function cargarCarrito() {
 }
 
 function clearAllCarrito() {
-    localStorage.removeItem("carrito");
+    const key = obtenerKeyCarrito();
+    if (key) {
+        localStorage.removeItem(key);
+    }
     actualizarCarritoContador();
 
     if (document.getElementById("cart-items")) {
@@ -292,7 +460,7 @@ function configurarValidacionRegistro() {
 
         const runInput = document.getElementById("run");
         const runError = document.getElementById("error-run");
-        const runRegex = /^[0-9]{7,8}[0-9kK]{1}$/;
+        const runRegex = /^\d{7,8}[0-9kK]$/;
         if (!runRegex.test(runInput.value.trim())) {
             runError.textContent = "RUN inválido. Ingrese entre 7 y 9 caracteres sin puntos ni guión.";
             esValido = false;
@@ -323,8 +491,26 @@ function configurarValidacionRegistro() {
         }
 
         if (esValido) {
-            alert("Cuenta registrada con éxito.");
-            form.reset();
+            const resultado = registrarUsuario(
+                runInput.value.trim(),
+                correoInput.value.trim(),
+                contrasenaInput.value.trim()
+            );
+            
+            if (resultado.exito) {
+                const feedbackEl = document.getElementById("error-correo");
+                feedbackEl.textContent = resultado.mensaje;
+                feedbackEl.classList.remove("error-msg");
+                feedbackEl.classList.add("success-msg");
+                form.reset();
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 2000);
+            } else {
+                const feedbackEl = document.getElementById("error-correo");
+                feedbackEl.textContent = resultado.mensaje;
+                feedbackEl.classList.add("error-msg");
+            }
         }
     });
 }
@@ -352,20 +538,32 @@ function configurarFormulariosAdicionales() {
     if (login && loginFeedback) {
         login.addEventListener("submit", event => {
             event.preventDefault();
-            const correo = document.getElementById("login-correo");
-            if (!login.checkValidity()) {
-                loginFeedback.textContent = "Ingresa un correo válido y una contraseña de 4 a 10 caracteres.";
-                loginFeedback.classList.add("error-msg");
-                login.reportValidity();
-                return;
-            }
-            if (!correo.value.endsWith("@duoc.cl") && !correo.value.endsWith("@profesor.duoc.cl") && !correo.value.endsWith("@gmail.com")) {
-                loginFeedback.textContent = "Usa un correo @duoc.cl, @profesor.duoc.cl o @gmail.com.";
+
+            const correoInput = document.getElementById("login-correo");
+            const contrasenaInput = document.getElementById("login-clave");
+            
+            if (!correoInput || !contrasenaInput) {
+                loginFeedback.textContent = "Error en el formulario. Recarga la página.";
                 loginFeedback.classList.add("error-msg");
                 return;
             }
-            loginFeedback.textContent = "Inicio de sesión validado correctamente.";
-            loginFeedback.classList.remove("error-msg");
+
+            const resultado = iniciarSesion(correoInput.value.trim(), contrasenaInput.value.trim());
+
+            if (resultado.exito) {
+                loginFeedback.textContent = "Inicio de sesión exitoso. Redirigiendo...";
+                loginFeedback.classList.remove("error-msg");
+                loginFeedback.classList.add("success-msg");
+                login.reset();
+                setTimeout(() => {
+                    mostrarOcultarAdminLink();
+                    mostrarOcultarLogout();
+                    window.location.href = "index.html";
+                }, 1500);
+            } else {
+                loginFeedback.textContent = resultado.mensaje;
+                loginFeedback.classList.add("error-msg");
+            }
         });
     }
 }

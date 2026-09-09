@@ -189,6 +189,36 @@ body {
   font-weight: 700;
 }
 
+/* Admin Link */
+.admin-link {
+  background-color: var(--accent-teal) !important;
+  color: var(--text-inverse) !important;
+}
+
+.admin-link:hover {
+  background-color: #0d7d73 !important;
+}
+
+/* Logout Button */
+#nav-logout {
+  text-decoration: none;
+  color: var(--error);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-s);
+  transition: var(--transition);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+#nav-logout:hover {
+  color: var(--text-inverse);
+  background-color: var(--error);
+}
+
 /* Cart Page */
 .cart-page {
   padding-top: 2rem;
