@@ -22,16 +22,14 @@ Sitio web frontend de una tienda online de productos de salud, desarrollado con 
 |   |-- productos.html
 |   |-- nosotros.html
 |   |-- blogs.html
-|   |-- contacto.html
-|   |-- login.html
-|   |-- registro.html
-|   |-- carrito.html
-|   `-- clicker.html
+|   |-- *.html
 +-- css/
 |   |-- styles.css
 |   `-- clicker.css
 +-- js/
 |   `-- main.js
+|    -- *js
+|   
 `-- src/
     |-- *.png
     `-- video.mp4
