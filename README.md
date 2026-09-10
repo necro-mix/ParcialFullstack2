@@ -50,7 +50,6 @@ Abre `html/index.html` directamente en el navegador o utiliza Live Server en Vis
 
 - Enlace público al repositorio GitHub.
 - Proyecto frontend comprimido.
-- Documento ERS: [ERS.md](ERS.md).
 
 ## Equipo
 
