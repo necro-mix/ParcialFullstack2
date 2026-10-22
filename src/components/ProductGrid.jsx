@@ -42,8 +42,12 @@ export default function ProductGrid({ compact = false, onCartChange }) {
           {categories.map((item) => <option key={item}>{item}</option>)}
         </select>
       </div>
-      <div className="products-grid" id="products-container">
-        {filtered.map((producto) => <ProductCard key={producto.id} producto={producto} onAdded={handleAdded} />)}
+      <div className="row g-4 catalog-products" id="products-container">
+        {filtered.map((producto) => (
+          <div className="col-12 col-sm-6 col-lg-4 col-xl-3" key={producto.id}>
+            <ProductCard producto={producto} onAdded={handleAdded} />
+          </div>
+        ))}
       </div>
       {filtered.length === 0 && <p className="empty-state">No se encontraron productos para esa búsqueda.</p>}
       {added && <p className="added-feedback" role="status">Producto agregado al carrito.</p>}

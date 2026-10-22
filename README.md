@@ -16,11 +16,13 @@ npm run dev
 Vite mostrará la dirección local para abrir la aplicación. Para comprobar el proyecto:
 
 ```bash
-npm test             # Jasmine (lógica) y Vitest (componentes React)
-npm run test:jasmine # pruebas Jasmine de datos y persistencia
-npm run test:react   # pruebas React con Vitest y Testing Library
-npm run test:watch   # Vitest en modo de observación
-npm run build        # compilación de producción en dist/
+npm test                 # Jasmine, Jasmine/Karma y Vitest
+npm run test:jasmine     # Jasmine: lógica, datos y persistencia
+npm run test:karma       # 10 pruebas Jasmine de componentes en Karma/jsdom
+npm run test:react       # pruebas de interacción React con Vitest/Testing Library
+npm run test:coverage    # Vitest más informe V8 en coverage/vitest/
+npm run test:watch       # Vitest en modo de observación
+npm run build            # compilación de producción en dist/
 ```
 
 ## Publicar en GitHub Pages
@@ -43,6 +45,7 @@ Para publicar cambios después, haz commit y push a `main`; Actions repetirá la
 index.html                 Entrada HTML; contiene el elemento #root
 vite.config.js             Configuración de Vite y Vitest
 jasmine.json               Descubrimiento de las pruebas Jasmine
+karma.conf.cjs             Runner Karma y entorno Jasmine/jsdom
 css/                       Estilos globales y estilos de la versión anterior
 src/
   main.jsx                 Arranque de React, router y hojas de estilo
@@ -54,6 +57,7 @@ src/
   pages/                   Una pantalla por ruta o flujo
   test/setup.js            Preparación común de Vitest
   *.spec.js                Pruebas unitarias de Jasmine
+  **/*.karma.spec.js       Pruebas de componentes con Jasmine y Karma
   **/*.test.jsx            Pruebas de interfaz con Vitest y Testing Library
 test/jasmine-setup.js      DOM simulado para Jasmine
 ```
@@ -98,7 +102,7 @@ Para cambiar las regiones y comunas disponibles en el registro, modifica `region
 - `css/styles.css`: estilos globales que también se importan al iniciar la app.
 - `css/admin.css`: presentación del panel administrativo.
 - `css/clicker.css` y estilos de componentes: estilos de otras áreas/versión del proyecto.
-- Bootstrap está disponible porque se importa en `src/main.jsx`.
+- Bootstrap 5 se importa en `src/main.jsx`; el catálogo usa su grilla responsiva (`row`, `col-sm-6`, `col-lg-4`, `col-xl-3`) y los estilos de marca complementan sus componentes.
 
 Busca la clase CSS usada en el `className` del componente y cambia su regla en la hoja de estilos correspondiente. Para colores o medidas repetidas, revisa las variables CSS ya existentes antes de crear otras. Evita modificar la estructura HTML si solo necesitas un cambio visual.
 
@@ -127,8 +131,9 @@ Las imágenes y archivos del video publicados están en `public/media/`; Vite lo
 
 ## Cómo se prueban los cambios
 
-- Jasmine corre pruebas unitarias de `data.js` y `storage.js` en `src/storage.spec.js`. El helper `test/jasmine-setup.js` prepara jsdom y limpia `localStorage`.
-- Vitest con Testing Library prueba la experiencia observable de componentes React, por ejemplo `ProductCard`, `Register` y `Admin`. `src/test/setup.js` limpia el almacenamiento y desmonta el DOM entre pruebas.
+- Jasmine ejecuta las pruebas unitarias de `data.js` y `storage.js` en `src/storage.spec.js`.
+- Jasmine con Karma prueba diez comportamientos de `ProductCard` y `ProductGrid` en `src/components/Catalog.karma.spec.js`. Karma lanza jsdom y esbuild transforma el JSX para el entorno de pruebas.
+- Vitest con Testing Library prueba interacciones de `ProductCard`, `ProductGrid`, `Register`, `Admin`, `Layout` y `Cart`. `src/test/setup.js` limpia el almacenamiento y desmonta el DOM entre pruebas.
 - Las pruebas usan almacenamiento aislado por caso; no necesitan una base de datos.
 
-Al agregar comportamiento, prueba el resultado que verá el usuario o el estado persistido. Ejecuta `npm test` para correr ambos grupos y `npm run build` para verificar que la aplicación de producción siga compilando.
+Al agregar comportamiento, prueba el resultado que verá el usuario o el estado persistido. Ejecuta `npm test` para correr los tres grupos, `npm run test:coverage` para generar el informe de cobertura y `npm run build` para verificar la aplicación de producción.

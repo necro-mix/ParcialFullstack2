@@ -567,11 +567,7 @@ body {
   color: var(--text-muted);
 }
 
-/* Products Grid */
-.products-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1.5rem;
+.catalog-products {
   margin-bottom: 4rem;
 }
 

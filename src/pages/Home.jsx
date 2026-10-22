@@ -22,7 +22,7 @@ export default function Home() {
       </div>
       <div className="main-content">
         <main className="container">
-          <ProductGrid compact onCartChange={() => setCartCount(getCart().length)} />
+          <ProductGrid compact />
         </main>
       </div>
       <section className="media-section container" aria-labelledby="health-video-title">

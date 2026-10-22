@@ -30,4 +30,15 @@ describe('ProductCard', () => {
     expect(onAdded).toHaveBeenCalledWith(product);
     expect(JSON.parse(localStorage.getItem('carrito_usuario@example.com'))).toHaveLength(1);
   });
+
+  it('no permite agregar productos sin una sesión activa', async () => {
+    const user = userEvent.setup();
+    const onAdded = vi.fn();
+    render(<ProductCard producto={product} onAdded={onAdded} />);
+
+    await user.click(screen.getByRole('button', { name: /Añadir al Carrito/i }));
+
+    expect(onAdded).not.toHaveBeenCalled();
+    expect(localStorage.getItem('carrito_usuario@example.com')).toBeNull();
+  });
 });

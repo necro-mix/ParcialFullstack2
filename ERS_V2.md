@@ -47,10 +47,11 @@ Adaptar la tienda online existente a una aplicación React estructurada, respons
 ## 6. Testing
 
 - Jasmine ejecuta pruebas unitarias de los datos y la persistencia.
-- Vitest con Testing Library verifica renderizado, eventos e interacción de componentes React.
-- jsdom simula el entorno del navegador.
+- Jasmine con Karma y jsdom verifica diez casos de componentes React; esbuild transforma JSX.
+- Vitest con Testing Library verifica flujos de interacción de componentes y páginas.
+- Vitest genera cobertura V8 de `ProductCard` y `ProductGrid`.
 - localStorage se usa para validar persistencia y sesiones.
-- Las suites se ejecutan con `npm test`.
+- Las tres suites se ejecutan con `npm test`; `npm run test:coverage` produce el informe HTML y LCOV.
 
 ## 7. Restricciones
 

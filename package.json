@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "npm run test:jasmine && npm run test:react",
+    "test": "npm run test:jasmine && npm run test:karma && npm run test:react",
     "test:jasmine": "jasmine --config=jasmine.json",
+    "test:karma": "karma start karma.conf.cjs",
     "test:react": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -23,8 +25,14 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",
     "@testing-library/user-event": "^14.5.2",
+    "@vitest/coverage-v8": "^2.1.9",
+    "esbuild": "^0.25.12",
     "jasmine": "^5.6.0",
     "jsdom": "^25.0.1",
+    "karma": "^6.4.4",
+    "karma-esbuild": "^2.3.0",
+    "karma-jasmine": "^5.1.0",
+    "karma-jsdom-launcher": "^22.0.0",
     "vitest": "^2.1.8"
   }
 }
