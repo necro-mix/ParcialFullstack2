@@ -2,7 +2,10 @@ import { permisosDefault, productos } from './data.js';
 import {
   addToCart,
   clearCart,
+  createProduct,
+  deleteProduct,
   getCart,
+  getProducts,
   getSession,
   getUserPermissions,
   getUserState,
@@ -13,6 +16,7 @@ import {
   removeFromCart,
   saveUserPermissions,
   setUserState,
+  updateProduct,
   updateUser,
 } from './storage.js';
 
@@ -92,6 +96,36 @@ describe('persistencia del carrito', () => {
     expect(removeFromCart(0)).toEqual([productos[1]]);
     expect(clearCart()).toEqual([]);
     expect(getCart()).toEqual([]);
+  });
+});
+
+describe('gestión de productos', () => {
+  const newProduct = {
+    nombre: 'Producto de prueba',
+    precio: 2500,
+    src: '/media/prueba.png',
+    categoria: 'Pruebas',
+    oferta: false,
+  };
+
+  it('requiere rol admin para crear, editar o eliminar productos', () => {
+    localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'persona@ejemplo.com' }));
+    registerUser({ correo: 'persona@ejemplo.com', run: '12345678K' });
+
+    expect(() => createProduct(newProduct)).toThrowError(/administradores/i);
+    expect(() => updateProduct(productos[0].id, { nombre: 'Cambio no permitido' })).toThrowError(/administradores/i);
+    expect(() => deleteProduct(productos[0].id)).toThrowError(/administradores/i);
+  });
+
+  it('permite al administrador crear, consultar, editar y eliminar productos', () => {
+    loginUser('admin@duoc.cl', 'Admin123');
+    const created = createProduct(newProduct);
+
+    expect(getProducts()).toContain(jasmine.objectContaining(newProduct));
+    expect(updateProduct(created.id, { nombre: 'Producto actualizado' })).toBeTrue();
+    expect(getProducts()).toContain(jasmine.objectContaining({ id: created.id, nombre: 'Producto actualizado' }));
+    expect(deleteProduct(created.id)).toBeTrue();
+    expect(getProducts()).not.toContain(jasmine.objectContaining({ id: created.id }));
   });
 });
 

@@ -1,4 +1,4 @@
-import { permisosDefault } from './data.js';
+import { permisosDefault, productos as productosIniciales } from './data.js';
 
 const ADMIN_DEFAULT = {
   correo: 'admin@duoc.cl',
@@ -11,6 +11,54 @@ function emitCustomEvent(name) {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event(name));
   }
+}
+
+function requireAdmin() {
+  const session = getSession();
+  const user = session && getUsers().find((item) => item.correo === session.correo);
+  if (user?.rol !== 'admin') {
+    throw new Error('Solo los administradores pueden gestionar productos.');
+  }
+}
+
+export function getProducts() {
+  const stored = localStorage.getItem('productos');
+  return stored ? JSON.parse(stored) : productosIniciales;
+}
+
+export function createProduct(product) {
+  requireAdmin();
+  const products = getProducts();
+  const nextId = products.reduce((maxId, item) => Math.max(maxId, Number(item.id) || 0), 0) + 1;
+  const next = [...products, { ...product, id: nextId }];
+  localStorage.setItem('productos', JSON.stringify(next));
+  emitCustomEvent('productschange');
+  return next[next.length - 1];
+}
+
+export function updateProduct(id, updates) {
+  requireAdmin();
+  const products = getProducts();
+  const index = products.findIndex((item) => item.id === id);
+  if (index === -1) return false;
+
+  const next = products.map((item, itemIndex) => (
+    itemIndex === index ? { ...item, ...updates, id: item.id } : item
+  ));
+  localStorage.setItem('productos', JSON.stringify(next));
+  emitCustomEvent('productschange');
+  return true;
+}
+
+export function deleteProduct(id) {
+  requireAdmin();
+  const products = getProducts();
+  const next = products.filter((item) => item.id !== id);
+  if (next.length === products.length) return false;
+
+  localStorage.setItem('productos', JSON.stringify(next));
+  emitCustomEvent('productschange');
+  return true;
 }
 
 export function getUsers() {

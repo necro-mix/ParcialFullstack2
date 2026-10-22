@@ -1,7 +1,11 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Admin from './Admin';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 beforeEach(() => {
   localStorage.clear();
@@ -13,6 +17,51 @@ beforeEach(() => {
 });
 
 describe('Admin', () => {
+  it('permite a un administrador crear, editar y eliminar productos', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    render(<Admin />);
+
+    await user.click(screen.getByRole('button', { name: /^productos$/i }));
+    await user.click(screen.getByRole('button', { name: /crear producto/i }));
+    await user.type(screen.getByLabelText(/nombre/i), 'Producto de prueba');
+    await user.type(screen.getByLabelText(/precio/i), '2500');
+    await user.type(screen.getByLabelText(/categoría/i), 'Pruebas');
+    await user.type(screen.getByLabelText(/imagen/i), '/media/prueba.png');
+    await user.click(screen.getByRole('button', { name: /guardar producto/i }));
+
+    expect(JSON.parse(localStorage.getItem('productos'))).toContainEqual(expect.objectContaining({
+      nombre: 'Producto de prueba',
+      precio: 2500,
+      categoria: 'Pruebas',
+    }));
+
+    const productRow = screen.getByRole('row', { name: /producto de prueba/i });
+    await user.click(within(productRow).getByRole('button', { name: /editar/i }));
+    const nameInput = screen.getByLabelText(/nombre/i);
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Producto actualizado');
+    await user.click(screen.getByRole('button', { name: /guardar producto/i }));
+
+    expect(JSON.parse(localStorage.getItem('productos'))).toContainEqual(expect.objectContaining({
+      nombre: 'Producto actualizado',
+    }));
+
+    const updatedProductRow = screen.getByRole('row', { name: /producto actualizado/i });
+    await user.click(within(updatedProductRow).getByRole('button', { name: /eliminar/i }));
+    expect(JSON.parse(localStorage.getItem('productos'))).not.toContainEqual(expect.objectContaining({
+      nombre: 'Producto actualizado',
+    }));
+  });
+
+  it('no muestra el panel administrativo a un usuario sin rol admin', () => {
+    localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'juan@duoc.cl', run: '12345678K' }));
+    render(<Admin />);
+
+    expect(screen.getByRole('heading', { name: /acceso denied/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^productos$/i })).not.toBeInTheDocument();
+  });
+
   it('permite editar el usuario y guardar cambios de permisos', async () => {
     const user = userEvent.setup();
     render(<Admin />);

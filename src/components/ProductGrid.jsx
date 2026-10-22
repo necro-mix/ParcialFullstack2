@@ -1,18 +1,25 @@
-import { useMemo, useState } from 'react';
-import { productos } from '../data';
+import { useEffect, useMemo, useState } from 'react';
 import ProductCard from './ProductCard';
+import { getProducts } from '../storage';
 
 export default function ProductGrid({ compact = false, onCartChange }) {
+  const [products, setProducts] = useState(getProducts);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todas');
   const [added, setAdded] = useState(null);
-  const categories = ['Todas', ...new Set(productos.map((producto) => producto.categoria))];
-  const filtered = useMemo(() => productos.filter((producto) => {
+  const categories = ['Todas', ...new Set(products.map((producto) => producto.categoria))];
+  const filtered = useMemo(() => products.filter((producto) => {
     const normalized = search.trim().toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const matchesSearch = producto.nombre.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalized);
     const matchesCategory = category === 'Todas' || producto.categoria === category;
     return matchesSearch && matchesCategory;
-  }), [search, category]);
+  }), [products, search, category]);
+
+  useEffect(() => {
+    const refreshProducts = () => setProducts(getProducts());
+    window.addEventListener('productschange', refreshProducts);
+    return () => window.removeEventListener('productschange', refreshProducts);
+  }, []);
 
   const handleAdded = (producto) => {
     setAdded(producto.id);
