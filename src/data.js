@@ -1,5 +1,5 @@
 const baseUrl = import.meta.env?.BASE_URL || '/';
-const asset = (name) => `${baseUrl}src/${name}`;
+const asset = (name) => `${baseUrl}media/${name}`;
 
 export const productos = [
   { id: 1, nombre: 'Clonazepam 0.25 mg (Bioequivalente)', precio: 15000, src: asset('clona.png'), categoria: 'Medicamentos', oferta: false },

@@ -123,7 +123,7 @@ Esto es una barrera de interfaz para una demostración, no autorización segura:
 
 ### Imágenes, video y contenido
 
-Las imágenes del catálogo están en `src/`. La portada y el video se construyen en `src/pages/Home.jsx`; el video y subtítulos están en `src/video.mp4` y `src/video-captions.vtt`. Los textos de contenido informativo están en las páginas correspondientes de `src/pages/`.
+Las imágenes y archivos del video publicados están en `public/media/`; Vite los copia sin cambios al sitio final. La portada y el video se muestran desde `src/pages/Home.jsx`. Los textos de contenido informativo están en las páginas correspondientes de `src/pages/`.
 
 ## Cómo se prueban los cambios
 
