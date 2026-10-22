@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { getCart, getSession, logoutUser } from '../storage';
+import { getCart, getSession, getUserByEmail, logoutUser } from '../storage';
 
 const Icon = ({ name }) => {
   const icons = {
@@ -24,15 +24,18 @@ export default function Layout({ children }) {
     const onStorage = () => syncSessionState();
     const onSessionChange = () => syncSessionState();
     const onCartChange = () => syncSessionState();
+    const onUsersChange = () => syncSessionState();
 
     window.addEventListener('storage', onStorage);
     window.addEventListener('sessionchange', onSessionChange);
     window.addEventListener('cartchange', onCartChange);
+    window.addEventListener('userschange', onUsersChange);
 
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('sessionchange', onSessionChange);
       window.removeEventListener('cartchange', onCartChange);
+      window.removeEventListener('userschange', onUsersChange);
     };
   }, []);
 
@@ -42,7 +45,8 @@ export default function Layout({ children }) {
     await navigate('/');
   };
 
-  const isAdmin = session?.correo === 'admin@duoc.cl';
+  const role = getUserByEmail(session?.correo)?.rol;
+  const canAccessAdmin = role === 'admin' || role === 'moderador';
 
   return (
     <div className="app-shell">
@@ -64,7 +68,7 @@ export default function Layout({ children }) {
           <NavLink to="/contacto">Contacto</NavLink>
           {!session && <NavLink to="/login">Iniciar Sesión</NavLink>}
           {!session && <NavLink to="/registro">Crear Cuenta</NavLink>}
-          {isAdmin && <NavLink to="/admin" className="admin-link">Panel Admin</NavLink>}
+          {canAccessAdmin && <NavLink to="/admin" className="admin-link">Panel Admin</NavLink>}
           {session && <button id="nav-logout" type="button" onClick={handleLogout}>Cerrar Sesión</button>}
         </nav>
         <Link to="/carrito" className="cart-status" aria-label={`Mi carrito, ${cartCount} productos`}>

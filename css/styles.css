@@ -632,6 +632,20 @@ body {
   margin-bottom: 1rem;
 }
 
+.offer-badge {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background-color: #fff1f2;
+  color: #be123c;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .btn-add {
   background-color: var(--brand-navy);
   color: var(--text-inverse);

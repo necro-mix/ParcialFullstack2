@@ -6,9 +6,9 @@ import Layout from '../components/Layout';
 import Login from './Login';
 import Register from './Register';
 
-const fillValidForm = async (user) => {
+const fillValidForm = async (user, email = 'usuario@gmail.com') => {
   await user.type(screen.getByLabelText(/RUN/i), '19011022K');
-  await user.type(screen.getByLabelText(/Correo Electrónico/i), 'usuario@gmail.com');
+  await user.type(screen.getByLabelText(/Correo Electrónico/i), email);
   await user.type(screen.getByLabelText(/^Nombre/i), 'Juan');
   await user.type(screen.getByLabelText(/Apellidos/i), 'Pérez González');
   await user.type(screen.getByLabelText(/^Contraseña\*/i), 'abcd');
@@ -43,6 +43,30 @@ describe('Register', () => {
     await user.click(screen.getByRole('button', { name: /Confirmar y Crear Cuenta/i }));
     expect(screen.getByText(/Completa los campos obligatorios/i)).toBeInTheDocument();
   });
+
+  it('muestra un error específico si el dominio del correo no está permitido', async () => {
+    const user = userEvent.setup();
+    render(<MemoryRouter><Register /></MemoryRouter>);
+    await fillValidForm(user, 'usuario@yahoo.com');
+    await user.click(screen.getByRole('button', { name: /Confirmar y Crear Cuenta/i }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(/dominio del correo no está permitido/i);
+    expect(screen.getByRole('alert')).toHaveTextContent(/@duoc\.cl.*@profesor\.duoc\.cl.*@gmail\.com/i);
+    expect(screen.queryByText(/Completa los campos obligatorios/i)).not.toBeInTheDocument();
+    expect(localStorage.getItem('usuarios')).toBeNull();
+  });
+
+  it.each(['usuario@duoc.cl', 'usuario@profesor.duoc.cl', 'usuario@gmail.com'])(
+    'acepta el dominio permitido %s',
+    async (email) => {
+      const user = userEvent.setup();
+      render(<MemoryRouter><Register /></MemoryRouter>);
+      await fillValidForm(user, email);
+      await user.click(screen.getByRole('button', { name: /Confirmar y Crear Cuenta/i }));
+
+      expect(await screen.findByText(/Usuario registrado exitosamente/i)).toBeInTheDocument();
+    }
+  );
 
   it('actualiza el layout y muestra el panel admin después del login sin recargar', async () => {
     const user = userEvent.setup();

@@ -1,4 +1,5 @@
 import { addToCart, getCart, getSession } from '../storage';
+import OfferBadge from './OfferBadge';
 
 export default function ProductCard({ producto, onAdded }) {
   const addProduct = () => {
@@ -11,6 +12,7 @@ export default function ProductCard({ producto, onAdded }) {
     <article className="card product-card">
       <div className="card-img-wrapper"><img src={producto.src} alt={producto.nombre} /></div>
       <div>
+        <OfferBadge product={producto} />
         <h3>{producto.nombre}</h3>
         <p>${producto.precio.toLocaleString('es-CL')}</p>
       </div>

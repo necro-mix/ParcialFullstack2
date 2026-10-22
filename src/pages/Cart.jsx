@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { clearCart, getCart, removeFromCart } from '../storage';
+import OfferBadge from '../components/OfferBadge';
 
 export default function Cart() {
   const [cart, setCart] = useState(getCart());
@@ -21,7 +22,7 @@ export default function Cart() {
       <div className="cart-layout">
         <div>
           <div className="cart-items">
-            {cart.map((product, index) => <article className="cart-item" key={`${product.id}-${index}`}><img src={product.src} alt={product.nombre} /><div className="cart-item-info"><h3>{product.nombre}</h3><p>${product.precio.toLocaleString('es-CL')}</p></div><button className="cart-remove" type="button" onClick={() => update(index)}>Eliminar</button></article>)}
+            {cart.map((product, index) => <article className="cart-item" key={`${product.id}-${index}`}><img src={product.src} alt={product.nombre} /><div className="cart-item-info"><OfferBadge product={product} /><h3>{product.nombre}</h3><p>${product.precio.toLocaleString('es-CL')}</p></div><button className="cart-remove" type="button" onClick={() => update(index)}>Eliminar</button></article>)}
           </div>
           {empty && <p className="cart-empty">Tu carrito esta vacío. <Link to="/productos">Volver al catálogo</Link></p>}
         </div>

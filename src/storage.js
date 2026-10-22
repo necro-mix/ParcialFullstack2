@@ -13,11 +13,21 @@ function emitCustomEvent(name) {
   }
 }
 
-function requireAdmin() {
+function getCurrentRole() {
   const session = getSession();
-  const user = session && getUsers().find((item) => item.correo === session.correo);
-  if (user?.rol !== 'admin') {
-    throw new Error('Solo los administradores pueden gestionar productos.');
+  return session && getUserByEmail(session.correo)?.rol;
+}
+
+export function canViewRole(viewerRole, targetRole) {
+  if (viewerRole === 'admin') return true;
+  const roleRank = { usuario: 1, moderador: 2, admin: 3 };
+  return Boolean(roleRank[viewerRole] && roleRank[targetRole] && roleRank[viewerRole] >= roleRank[targetRole]);
+}
+
+function requireManager() {
+  const role = getCurrentRole();
+  if (role !== 'admin' && role !== 'moderador') {
+    throw new Error('Solo administradores y moderadores pueden gestionar productos.');
   }
 }
 
@@ -27,7 +37,7 @@ export function getProducts() {
 }
 
 export function createProduct(product) {
-  requireAdmin();
+  requireManager();
   const products = getProducts();
   const nextId = products.reduce((maxId, item) => Math.max(maxId, Number(item.id) || 0), 0) + 1;
   const next = [...products, { ...product, id: nextId }];
@@ -37,7 +47,7 @@ export function createProduct(product) {
 }
 
 export function updateProduct(id, updates) {
-  requireAdmin();
+  requireManager();
   const products = getProducts();
   const index = products.findIndex((item) => item.id === id);
   if (index === -1) return false;
@@ -51,7 +61,7 @@ export function updateProduct(id, updates) {
 }
 
 export function deleteProduct(id) {
-  requireAdmin();
+  requireManager();
   const products = getProducts();
   const next = products.filter((item) => item.id !== id);
   if (next.length === products.length) return false;
@@ -70,6 +80,11 @@ export function getUsers() {
     saveUsers(normalizedUsers);
   }
   return normalizedUsers;
+}
+
+export function getUserByEmail(correo) {
+  const normalizedEmail = String(correo || '').trim().toLowerCase();
+  return getUsers().find((user) => String(user.correo || '').trim().toLowerCase() === normalizedEmail);
 }
 
 export function saveUsers(users) {
@@ -176,10 +191,20 @@ export function getUserState(correo) {
 }
 
 export function setUserState(correo, state) {
+  const role = getCurrentRole();
+  const target = getUserByEmail(correo);
+  if ((role !== 'admin' && role !== 'moderador') || !target || !canViewRole(role, target.rol)) {
+    throw new Error('No tienes permisos para modificar el estado de este usuario.');
+  }
   localStorage.setItem(`estado_${correo}`, state);
 }
 
 export function updateUser(correo, updates) {
+  const currentRole = getCurrentRole();
+  if (currentRole !== 'admin' && currentRole !== 'moderador') {
+    throw new Error('Solo administradores y moderadores pueden editar usuarios.');
+  }
+
   const users = getUsers();
   const normalizedCorreo = String(correo || '').trim();
   const index = users.findIndex((user) => user.correo === normalizedCorreo);
@@ -187,6 +212,21 @@ export function updateUser(correo, updates) {
   if (index === -1) return false;
 
   const previous = users[index];
+  if (!canViewRole(currentRole, previous.rol)) {
+    throw new Error('No tienes permisos para editar este usuario.');
+  }
+  if (updates.rol !== undefined && !['usuario', 'moderador', 'admin'].includes(updates.rol)) {
+    throw new Error('El rol seleccionado no es válido.');
+  }
+  if (
+    currentRole === 'moderador'
+    && updates.rol !== undefined
+    && updates.rol !== previous.rol
+    && (previous.rol === 'admin' || updates.rol === 'admin')
+  ) {
+    throw new Error('Los moderadores no pueden cambiar el rol de un administrador ni asignar el rol admin.');
+  }
+
   const nextUser = {
     ...previous,
     ...updates,

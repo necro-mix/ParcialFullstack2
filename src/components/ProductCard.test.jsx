@@ -12,6 +12,13 @@ describe('ProductCard', () => {
     expect(screen.getByText(product.nombre)).toBeInTheDocument();
     expect(screen.getByText('$15.000')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Añadir al Carrito/i })).toBeInTheDocument();
+    expect(screen.queryByText('En oferta')).not.toBeInTheDocument();
+  });
+
+  it('indica cuando el producto está en oferta', () => {
+    render(<ProductCard producto={{ ...product, oferta: true }} onAdded={() => {}} />);
+
+    expect(screen.getByText('En oferta')).toBeInTheDocument();
   });
 
   it('notifica cuando se agrega un producto', async () => {

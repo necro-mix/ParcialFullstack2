@@ -108,13 +108,32 @@ describe('gestión de productos', () => {
     oferta: false,
   };
 
-  it('requiere rol admin para crear, editar o eliminar productos', () => {
+  it('requiere rol admin o moderador para gestionar productos', () => {
     localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'persona@ejemplo.com' }));
     registerUser({ correo: 'persona@ejemplo.com', run: '12345678K' });
 
     expect(() => createProduct(newProduct)).toThrowError(/administradores/i);
     expect(() => updateProduct(productos[0].id, { nombre: 'Cambio no permitido' })).toThrowError(/administradores/i);
     expect(() => deleteProduct(productos[0].id)).toThrowError(/administradores/i);
+  });
+
+  it('permite a moderadores gestionar productos, pero no modificar roles admin', () => {
+    localStorage.setItem('usuarios', JSON.stringify([
+      { correo: 'moderador@duoc.cl', run: '87654321K', rol: 'moderador' },
+      { correo: 'admin@duoc.cl', run: '11111111K', rol: 'admin' },
+      { correo: 'persona@ejemplo.com', run: '12345678K', rol: 'usuario' },
+    ]));
+    localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'moderador@duoc.cl' }));
+
+    const created = createProduct(newProduct);
+    expect(updateProduct(created.id, { nombre: 'Producto moderado' })).toBeTrue();
+    expect(deleteProduct(created.id)).toBeTrue();
+    expect(updateUser('persona@ejemplo.com', { rol: 'moderador' })).toBeTrue();
+    expect(() => updateUser('persona@ejemplo.com', { rol: 'admin' })).toThrowError(/moderadores no pueden cambiar/i);
+    expect(() => updateUser('admin@duoc.cl', { run: '00000000K' })).toThrowError(/no tienes permisos para editar/i);
+    expect(() => updateUser('admin@duoc.cl', { rol: 'usuario' })).toThrowError(/no tienes permisos para editar/i);
+    expect(() => setUserState('admin@duoc.cl', 'bloqueado')).toThrowError(/no tienes permisos/i);
+    expect(getUsers()).toContain(jasmine.objectContaining({ correo: 'admin@duoc.cl', rol: 'admin' }));
   });
 
   it('permite al administrador crear, consultar, editar y eliminar productos', () => {
@@ -147,6 +166,7 @@ describe('preferencias y administración de usuarios', () => {
 
   it('actualiza el usuario y migra sus permisos y estado cuando cambia el correo', () => {
     registerUser({ correo: 'persona@ejemplo.com', run: '12345678K' });
+    loginUser('admin@duoc.cl', 'Admin123');
     saveUserPermissions('persona@ejemplo.com', { 'acceso-admin': true });
     setUserState('persona@ejemplo.com', 'bloqueado');
 
@@ -159,6 +179,7 @@ describe('preferencias y administración de usuarios', () => {
   });
 
   it('informa cuando se intenta actualizar un correo inexistente', () => {
+    loginUser('admin@duoc.cl', 'Admin123');
     expect(updateUser('inexistente@ejemplo.com', { run: '12345678K' })).toBeFalse();
   });
 });

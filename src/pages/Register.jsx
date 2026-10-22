@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { regiones } from '../data';
 import { registerUser } from '../storage';
 
-const allowedDomains = ['@duoc.cl', '@profesor.duoc.cl', '@gmail.com'];
+const allowedDomains = ['duoc.cl', 'profesor.duoc.cl', 'gmail.com'];
 
 export default function Register() {
   const navigate = useNavigate();
@@ -20,10 +20,16 @@ export default function Register() {
     const email = String(data.correo).trim();
     const run = String(data.run || '').trim();
     const password = String(data.contrasena || '');
-    const validEmail = email.length <= 100 && allowedDomains.some((domain) => email.toLowerCase().endsWith(domain));
+    const emailDomain = email.toLowerCase().split('@').pop();
+    const validEmail = email.length <= 100 && allowedDomains.includes(emailDomain);
     const validPassword = password.length >= 4 && password.length <= 10;
     const validRegion = Boolean(region && comuna);
-    if (!validEmail || !run || !validPassword || !validRegion || password !== data['confirmar-contrasena']) {
+    if (!validEmail) {
+      setError('El dominio del correo no está permitido. Solo se aceptan @duoc.cl, @profesor.duoc.cl y @gmail.com.');
+      setSuccess('');
+      return;
+    }
+    if (!run || !validPassword || !validRegion || password !== data['confirmar-contrasena']) {
       setError('Completa los campos obligatorios y verifica email, contraseña y ubicación.');
       return;
     }
