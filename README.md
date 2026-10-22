@@ -23,6 +23,20 @@ npm run test:watch   # Vitest en modo de observación
 npm run build        # compilación de producción en dist/
 ```
 
+## Publicar en GitHub Pages
+
+El proyecto incluye `.github/workflows/deploy.yml`. Cada push a `main` ejecuta las pruebas, compila la aplicación y la publica automáticamente. La app usa `HashRouter` para que las rutas internas sigan funcionando al abrirlas o actualizar el navegador en GitHub Pages.
+
+Debes configurar Pages una sola vez:
+
+1. Sube el proyecto a GitHub, en la rama `main`.
+2. Abre el repositorio en GitHub y ve a **Settings → Pages**.
+3. En **Build and deployment → Source**, elige **GitHub Actions**.
+4. Ve a **Actions**, abre el flujo **Deploy to GitHub Pages** y espera a que la ejecución termine correctamente.
+5. Vuelve a **Settings → Pages** y abre la dirección publicada. En este repositorio de proyecto será normalmente `https://necro-mix.github.io/ParcialFullstack2/`.
+
+Para publicar cambios después, haz commit y push a `main`; Actions repetirá la compilación y el despliegue. No subas ni edites `dist/` manualmente: es una carpeta generada durante la compilación. Si renombras el repositorio, el flujo adapta automáticamente la ruta base al nuevo nombre.
+
 ## Cómo está organizado
 
 ```text
@@ -47,7 +61,7 @@ test/jasmine-setup.js      DOM simulado para Jasmine
 ## Recorrido de la aplicación
 
 1. `index.html` define el contenedor `#root` y carga `/src/main.jsx`.
-2. `main.jsx` monta React, activa `BrowserRouter` y carga Bootstrap y los estilos.
+2. `main.jsx` monta React, activa `HashRouter` y carga Bootstrap y los estilos.
 3. `App.jsx` selecciona una página según la URL y envuelve todas las páginas con `Layout`.
 4. `Layout.jsx` contiene navegación, pie de página, estado de sesión y contador del carrito.
 5. Las páginas y componentes leen el catálogo de `data.js` y usan las funciones de `storage.js` para guardar o recuperar datos.

@@ -27,7 +27,7 @@ export default function Home() {
       </div>
       <section className="media-section container" aria-labelledby="health-video-title">
         <div className="section-title"><h3 id="health-video-title">Video embedido porque era requisito</h3><p>Y como era requisito aquí tiene un video de un episodio de Hágalo usted mismo.</p></div>
-        <video controls preload="metadata" poster="/src/pediasure.png"><source src="/src/video.mp4" type="video/mp4" /><track kind="captions" src="/src/video-captions.vtt" srcLang="es" label="Español" />Tu navegador no admite la reproducción de videos.</video>
+        <video controls preload="metadata" poster={`${import.meta.env.BASE_URL}src/pediasure.png`}><source src={`${import.meta.env.BASE_URL}src/video.mp4`} type="video/mp4" /><track kind="captions" src={`${import.meta.env.BASE_URL}src/video-captions.vtt`} srcLang="es" label="Español" />Tu navegador no admite la reproducción de videos.</video>
       </section>
       <section className="container home-actions"><Link to="/ofertas" className="btn-submit">Ver ofertas</Link><Link to="/categorias" className="btn-secondary">Ver categorías</Link></section>
     </>
