@@ -29,10 +29,15 @@ describe('Admin', () => {
 
     await user.click(screen.getByRole('button', { name: /permisos/i }));
     await user.selectOptions(screen.getByLabelText(/selecciona un usuario/i), 'juan@duoc.cl');
-    const checkbox = screen.getByLabelText(/ver historial/i);
-    await user.click(checkbox);
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
+    await user.click(screen.getByLabelText(/acceso admin/i));
+    await user.click(screen.getByLabelText(/editar perfil/i));
     await user.click(screen.getByRole('button', { name: /guardar permisos/i }));
 
-    expect(JSON.parse(localStorage.getItem('permisos_juan@duoc.cl'))['ver-historial']).toBe(true);
+    const permissions = JSON.parse(localStorage.getItem('permisos_juan@duoc.cl'));
+    expect(permissions['acceso-admin']).toBe(true);
+    expect(permissions['editar-perfil']).toBe(false);
+    expect(permissions['ver-productos']).toBe(true);
+    expect(permissions['ver-historial']).toBe(false);
   });
 });
