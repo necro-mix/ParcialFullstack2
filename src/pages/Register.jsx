@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { regiones } from '../data';
-import { registerUser } from '../storage';
+import { apiRegisterUser } from '../api';
 
 const allowedDomains = ['duoc.cl', 'profesor.duoc.cl', 'gmail.com'];
 
@@ -13,7 +12,7 @@ export default function Register() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const data = Object.fromEntries(form.entries());
@@ -22,8 +21,8 @@ export default function Register() {
     const password = String(data.contrasena || '');
     const emailDomain = email.toLowerCase().split('@').pop();
     const validEmail = email.length <= 100 && allowedDomains.includes(emailDomain);
-    const validPassword = password.length >= 4 && password.length <= 10;
-    const validRegion = Boolean(region && comuna);
+    const validPassword = password.length >= 8 && password.length <= 128;
+    const validRegion = Boolean(region.trim() && comuna.trim());
     if (!validEmail) {
       setError('El dominio del correo no está permitido. Solo se aceptan @duoc.cl, @profesor.duoc.cl y @gmail.com.');
       setSuccess('');
@@ -33,10 +32,16 @@ export default function Register() {
       setError('Completa los campos obligatorios y verifica email, contraseña y ubicación.');
       return;
     }
-    const result = registerUser({ run, correo: email, contrasena: password, nombre: data.nombre, apellidos: data.apellidos, region, comuna, direccion: data.direccion });
-    setError(result.exito ? '' : result.mensaje);
-    setSuccess(result.exito ? result.mensaje : '');
-    if (result.exito) window.setTimeout(() => navigate('/login'), 1500);
+    try {
+      const user = { run, correo: email, contrasena: password, nombre: data.nombre, apellidos: data.apellidos, region: region.trim(), comuna: comuna.trim(), direccion: data.direccion };
+      const result = await apiRegisterUser(user);
+      setError(result.exito ? '' : result.mensaje);
+      setSuccess(result.exito ? result.mensaje : '');
+      if (result.exito) window.setTimeout(() => navigate('/login'), 1500);
+    } catch (requestError) {
+      setError(requestError.message);
+      setSuccess('');
+    }
   };
 
   return (
@@ -48,10 +53,10 @@ export default function Register() {
           <div className="form-group"><label htmlFor="correo">Correo Electrónico*</label><input id="correo" name="correo" type="email" required maxLength="100" autoComplete="email" placeholder="usuario@duoc.cl" /></div>
           <div className="form-group"><label htmlFor="nombre">Nombre*</label><input id="nombre" name="nombre" required maxLength="50" autoComplete="given-name" /></div>
           <div className="form-group"><label htmlFor="apellidos">Apellidos*</label><input id="apellidos" name="apellidos" required maxLength="100" autoComplete="family-name" /></div>
-          <div className="form-group"><label htmlFor="contrasena">Contraseña*</label><input id="contrasena" name="contrasena" type={showPassword ? 'text' : 'password'} required minLength="4" maxLength="10" autoComplete="new-password" /><button type="button" className="toggle-password" aria-pressed={showPassword} onClick={() => setShowPassword((value) => !value)}>{showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}</button></div>
-          <div className="form-group"><label htmlFor="confirmar-contrasena">Repetir contraseña*</label><input id="confirmar-contrasena" name="confirmar-contrasena" type={showPassword ? 'text' : 'password'} required minLength="4" maxLength="10" autoComplete="new-password" /></div>
-          <div className="form-group"><label htmlFor="region">Región Domiciliaria*</label><select id="region" name="region" required value={region} onChange={(event) => { setRegion(event.target.value); setComuna(''); }}><option value="">-- Seleccione una Región --</option>{regiones.map((item) => <option key={item.region}>{item.region}</option>)}</select></div>
-          <div className="form-group"><label htmlFor="comuna">Comuna Domiciliaria*</label><select id="comuna" name="comuna" required value={comuna} onChange={(event) => setComuna(event.target.value)} disabled={!region}><option value="">-- Seleccione una Comuna --</option>{regiones.find((item) => item.region === region)?.comunas.map((item) => <option key={item}>{item}</option>)}</select></div>
+          <div className="form-group"><label htmlFor="contrasena">Contraseña (mínimo 8 caracteres)*</label><input id="contrasena" name="contrasena" type={showPassword ? 'text' : 'password'} required maxLength="128" autoComplete="new-password" /><button type="button" className="toggle-password" aria-pressed={showPassword} onClick={() => setShowPassword((value) => !value)}>{showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}</button></div>
+          <div className="form-group"><label htmlFor="confirmar-contrasena">Repetir contraseña*</label><input id="confirmar-contrasena" name="confirmar-contrasena" type={showPassword ? 'text' : 'password'} required maxLength="128" autoComplete="new-password" /></div>
+          <div className="form-group"><label htmlFor="region">Región Domiciliaria*</label><input id="region" name="region" required maxLength="100" value={region} onChange={(event) => setRegion(event.target.value)} autoComplete="address-level1" /></div>
+          <div className="form-group"><label htmlFor="comuna">Comuna Domiciliaria*</label><input id="comuna" name="comuna" required maxLength="100" value={comuna} onChange={(event) => setComuna(event.target.value)} autoComplete="address-level2" /></div>
           <div className="form-group full-width"><label htmlFor="direccion">Dirección Calle y Número*</label><input id="direccion" name="direccion" required maxLength="300" autoComplete="street-address" /></div>
           <button className="btn-submit" type="submit">Confirmar y Crear Cuenta</button>
           {error && <small className="error-msg full-width" role="alert">{error}</small>}

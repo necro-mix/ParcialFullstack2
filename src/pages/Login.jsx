@@ -1,19 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser } from '../storage';
+import { apiLoginUser } from '../api';
 
 export default function Login() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const submit = (event) => {
+  const submit = async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    const result = loginUser(String(form.get('correo')).trim(), String(form.get('contrasena')));
-    setError(result.exito ? '' : result.mensaje);
-    setSuccess(result.exito ? result.mensaje : '');
-    if (result.exito) window.setTimeout(() => navigate('/'), 700);
+    try {
+      const result = await apiLoginUser(String(form.get('correo')), String(form.get('contrasena')));
+      setError(result.exito ? '' : result.mensaje);
+      setSuccess(result.exito ? result.mensaje : '');
+      if (result.exito) window.setTimeout(() => navigate('/'), 700);
+    } catch (requestError) {
+      setError(requestError.message);
+      setSuccess('');
+    }
   };
 
   return (

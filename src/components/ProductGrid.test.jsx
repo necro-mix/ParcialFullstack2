@@ -1,59 +1,89 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { productos } from '../data';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { testProducts } from '../test/catalog-fixtures';
 import ProductGrid from './ProductGrid';
 
+const asApiProducts = (products) => products.map((product) => ({
+  id: product.id,
+  name: product.nombre,
+  price: product.precio,
+  image: product.src,
+  category: product.categoria,
+  is_offer: product.oferta,
+}));
+
+const apiResponse = (products) => ({
+  ok: true,
+  status: 200,
+  json: async () => ({ count: products.length, next: null, results: asApiProducts(products) }),
+});
+
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(apiResponse(testProducts)));
+});
+
 afterEach(() => {
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
 describe('ProductGrid', () => {
-  it('muestra el catálogo completo inicialmente', () => {
+  it('carga el catálogo desde la API', async () => {
     render(<ProductGrid />);
 
-    expect(screen.getAllByRole('article')).toHaveLength(productos.length);
+    expect(await screen.findAllByRole('article')).toHaveLength(testProducts.length);
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringMatching(/\/api\/products\/$/),
+      expect.objectContaining({ method: 'GET' }),
+    );
   });
 
-  it('actualiza el catálogo al recibir un evento de cambio de productos', () => {
+  it('actualiza el catálogo al recibir un evento de cambio de productos', async () => {
     render(<ProductGrid />);
-    localStorage.setItem('productos', JSON.stringify([
-      { id: 99, nombre: 'Producto actualizado', precio: 1000, categoria: 'Pruebas', src: '/media/prueba.png' },
+    await screen.findByRole('heading', { name: 'Paracetamol 500 mg' });
+    fetch.mockResolvedValueOnce(apiResponse([
+      { id: 99, nombre: 'Producto actualizado', precio: 1000, categoria: 'Pruebas', src: '/media/prueba.png', oferta: false },
     ]));
 
     fireEvent(window, new Event('productschange'));
 
-    expect(screen.getByRole('heading', { name: 'Producto actualizado' })).toBeInTheDocument();
-    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(await screen.findByRole('heading', { name: 'Producto actualizado' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Paracetamol 500 mg' })).not.toBeInTheDocument();
   });
 
-  it('muestra el título de catálogo destacado cuando compact está activo', () => {
-    render(<ProductGrid compact />);
+  it('muestra el título destacado y los productos en oferta desde la API', async () => {
+    render(<ProductGrid compact offersOnly />);
 
-    expect(screen.getByRole('heading', { name: /catálogo de productos destacados/i })).toBeInTheDocument();
-  });
-
-  it('filtra productos por categoría', () => {
-    render(<ProductGrid />);
-    fireEvent.change(screen.getByRole('combobox', { name: /filtrar por categoría/i }), {
-      target: { value: 'Medicamentos' },
-    });
-
-    expect(screen.getAllByRole('article')).toHaveLength(2);
-    expect(screen.getByText('Paracetamol 500 mg')).toBeInTheDocument();
-  });
-
-  it('busca por nombre sin distinguir mayúsculas ni tildes', () => {
-    render(<ProductGrid />);
-    fireEvent.change(screen.getByRole('searchbox', { name: /buscar productos/i }), {
-      target: { value: 'PANAL' },
-    });
-
+    expect(await screen.findByRole('heading', { name: /catálogo de productos destacados/i })).toBeInTheDocument();
     expect(screen.getAllByRole('article')).toHaveLength(2);
     expect(screen.queryByText('Paracetamol 500 mg')).not.toBeInTheDocument();
   });
 
-  it('informa cuando la búsqueda no encuentra productos', () => {
+  it('filtra por categoría', async () => {
     render(<ProductGrid />);
+    await screen.findAllByRole('article');
+    fireEvent.change(screen.getByRole('combobox', { name: /filtrar por categoría/i }), {
+      target: { value: 'Medicamentos' },
+    });
+
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(screen.getByText('Paracetamol 500 mg')).toBeInTheDocument();
+  });
+
+  it('busca por nombre sin distinguir mayúsculas ni tildes', async () => {
+    render(<ProductGrid />);
+    await screen.findAllByRole('article');
+    fireEvent.change(screen.getByRole('searchbox', { name: /buscar productos/i }), {
+      target: { value: 'PANAL' },
+    });
+
+    expect(screen.getAllByRole('article')).toHaveLength(1);
+    expect(screen.queryByText('Paracetamol 500 mg')).not.toBeInTheDocument();
+  });
+
+  it('informa cuando la búsqueda no encuentra productos', async () => {
+    render(<ProductGrid />);
+    await screen.findAllByRole('article');
     fireEvent.change(screen.getByRole('searchbox', { name: /buscar productos/i }), {
       target: { value: 'producto inexistente' },
     });
@@ -62,7 +92,7 @@ describe('ProductGrid', () => {
     expect(screen.queryAllByRole('article')).toHaveLength(0);
   });
 
-  it('desplaza la vista al catálogo al activar Buscar', () => {
+  it('desplaza la vista al catálogo al activar Buscar', async () => {
     const scrollIntoView = vi.fn();
     vi.spyOn(document, 'getElementById').mockReturnValue({ scrollIntoView });
     render(<ProductGrid />);
@@ -72,14 +102,11 @@ describe('ProductGrid', () => {
     expect(scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth' });
   });
 
-  it('persiste productos agregados y notifica el cambio de carrito', () => {
-    const onCartChange = vi.fn();
-    localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'usuario@ejemplo.com' }));
-    render(<ProductGrid onCartChange={onCartChange} />);
-    fireEvent.click(screen.getAllByRole('button', { name: /añadir al carrito/i })[0]);
+  it('no persiste ni simula un carrito que la API todavía no ofrece', async () => {
+    render(<ProductGrid />);
 
-    expect(JSON.parse(localStorage.getItem('carrito_usuario@ejemplo.com'))).toHaveLength(1);
-    expect(onCartChange).toHaveBeenCalledOnce();
-    expect(screen.getByRole('status')).toHaveTextContent(/agregado al carrito/i);
+    const purchaseButtons = await screen.findAllByRole('button', { name: /compras no disponibles/i });
+    expect(purchaseButtons.every((button) => button.disabled)).toBe(true);
+    expect(localStorage.length).toBe(0);
   });
 });

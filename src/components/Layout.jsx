@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { getCart, getSession, getUserByEmail, logoutUser } from '../storage';
+import { getSession, getUserByEmail, logoutUser } from '../storage';
 
 const Icon = ({ name }) => {
   const icons = {
@@ -13,28 +13,23 @@ const Icon = ({ name }) => {
 export default function Layout({ children }) {
   const navigate = useNavigate();
   const [session, setSession] = useState(getSession());
-  const [cartCount, setCartCount] = useState(getCart().length);
 
   useEffect(() => {
     const syncSessionState = () => {
       setSession(getSession());
-      setCartCount(getCart().length);
     };
 
     const onStorage = () => syncSessionState();
     const onSessionChange = () => syncSessionState();
-    const onCartChange = () => syncSessionState();
     const onUsersChange = () => syncSessionState();
 
     window.addEventListener('storage', onStorage);
     window.addEventListener('sessionchange', onSessionChange);
-    window.addEventListener('cartchange', onCartChange);
     window.addEventListener('userschange', onUsersChange);
 
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('sessionchange', onSessionChange);
-      window.removeEventListener('cartchange', onCartChange);
       window.removeEventListener('userschange', onUsersChange);
     };
   }, []);
@@ -71,11 +66,10 @@ export default function Layout({ children }) {
           {canAccessAdmin && <NavLink to="/admin" className="admin-link">Panel Admin</NavLink>}
           {session && <button id="nav-logout" type="button" onClick={handleLogout}>Cerrar Sesión</button>}
         </nav>
-        <Link to="/carrito" className="cart-status" aria-label={`Mi carrito, ${cartCount} productos`}>
+        <div className="cart-status" role="status" aria-label="Carrito no disponible">
           <Icon name="cart" />
-          <span>Mi Carrito</span>
-          <span className="cart-badge" id="cart-count">{cartCount}</span>
-        </Link>
+          <span>Carrito no disponible</span>
+        </div>
       </header>
       <main>{children}</main>
       <footer>

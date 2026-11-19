@@ -1,85 +1,92 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { productos } from '../data';
-import ProductCard from './ProductCard';
-import ProductGrid from './ProductGrid';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { testProducts } from '../test/catalog-fixtures.js';
+import ProductCard from './ProductCard.jsx';
+import ProductGrid from './ProductGrid.jsx';
+
+let originalFetch;
+
+function apiProduct(product) {
+  return {
+    id: product.id,
+    name: product.nombre,
+    price: product.precio,
+    image: product.src,
+    category: product.categoria,
+    is_offer: product.oferta,
+  };
+}
+
+function stubCatalogFetch(products = testProducts) {
+  globalThis.fetch = jasmine.createSpy('fetch').and.returnValue(Promise.resolve({
+    ok: true,
+    status: 200,
+    json: () => Promise.resolve({ count: products.length, next: null, previous: null, results: products.map(apiProduct) }),
+  }));
+}
 
 afterEach(() => {
   cleanup();
   localStorage.clear();
+  globalThis.fetch = originalFetch;
+});
+
+beforeEach(() => {
+  originalFetch = globalThis.fetch;
+  stubCatalogFetch();
 });
 
 describe('pruebas de componentes de catálogo con Jasmine y Karma', () => {
-  it('renderiza el nombre del producto recibido por props', () => {
-    render(<ProductCard producto={productos[0]} />);
+  it('renderiza los datos del producto recibido por props', () => {
+    render(<ProductCard producto={testProducts[0]} />);
 
-    expect(screen.getByRole('heading', { name: productos[0].nombre })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: testProducts[0].nombre })).toBeTruthy();
+    expect(screen.getByText('$1.000')).toBeTruthy();
   });
 
-  it('formatea el precio del producto para pesos chilenos', () => {
-    render(<ProductCard producto={productos[0]} />);
-
-    expect(screen.getByText('$15.000')).toBeTruthy();
-  });
-
-  it('muestra la insignia de oferta cuando el producto está marcado', () => {
-    render(<ProductCard producto={{ ...productos[0], oferta: true }} />);
+  it('muestra la insignia de oferta recibida desde la API', () => {
+    render(<ProductCard producto={testProducts[1]} />);
 
     expect(screen.getByText('En oferta')).toBeTruthy();
   });
 
-  it('no muestra la insignia en productos sin oferta', () => {
-    render(<ProductCard producto={{ ...productos[0], oferta: false }} />);
+  it('deshabilita la compra hasta que la API ofrezca carrito y pedidos', () => {
+    render(<ProductCard producto={testProducts[0]} />);
 
-    expect(screen.queryByText('En oferta')).toBeNull();
+    expect(screen.getByRole('button', { name: /compras no disponibles/i }).disabled).toBeTrue();
+    expect(localStorage.length).toBe(0);
   });
 
-  it('no agrega el producto si no hay sesión activa', () => {
-    const onAdded = jasmine.createSpy('onAdded');
-    render(<ProductCard producto={productos[0]} onAdded={onAdded} />);
-    fireEvent.click(screen.getByRole('button', { name: /añadir al carrito/i }));
-
-    expect(onAdded).not.toHaveBeenCalled();
-    expect(localStorage.getItem('carrito_usuario@ejemplo.com')).toBeNull();
-  });
-
-  it('guarda el producto y notifica al componente padre con sesión activa', () => {
-    const onAdded = jasmine.createSpy('onAdded');
-    localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'usuario@ejemplo.com' }));
-    render(<ProductCard producto={productos[0]} onAdded={onAdded} />);
-    fireEvent.click(screen.getByRole('button', { name: /añadir al carrito/i }));
-
-    expect(JSON.parse(localStorage.getItem('carrito_usuario@ejemplo.com'))).toEqual([productos[0]]);
-    expect(onAdded).toHaveBeenCalledOnceWith(productos[0]);
-  });
-
-  it('presenta todos los productos al abrir el catálogo', () => {
+  it('carga el catálogo desde la API', async () => {
     render(<ProductGrid />);
 
-    expect(screen.getAllByRole('article').length).toBe(productos.length);
+    await waitFor(() => expect(screen.getAllByRole('article').length).toBe(testProducts.length));
+    expect(globalThis.fetch).toHaveBeenCalled();
   });
 
-  it('filtra los productos al cambiar la categoría', () => {
+  it('filtra los productos remotos al cambiar de categoría', async () => {
     render(<ProductGrid />);
+    await waitFor(() => expect(screen.getAllByRole('article').length).toBe(testProducts.length));
     fireEvent.change(screen.getByRole('combobox', { name: /filtrar por categoría/i }), {
       target: { value: 'Medicamentos' },
     });
 
-    expect(screen.getAllByRole('article').length).toBe(2);
+    expect(screen.getAllByRole('article').length).toBe(1);
     expect(screen.getByText('Paracetamol 500 mg')).toBeTruthy();
   });
 
-  it('busca ignorando mayúsculas y tildes', () => {
+  it('busca en el catálogo API ignorando mayúsculas y tildes', async () => {
     render(<ProductGrid />);
+    await waitFor(() => expect(screen.getAllByRole('article').length).toBe(testProducts.length));
     fireEvent.change(screen.getByRole('searchbox', { name: /buscar productos/i }), {
       target: { value: 'PANAL' },
     });
 
-    expect(screen.getAllByRole('article').length).toBe(2);
-    expect(screen.queryByText('Paracetamol 500 mg')).toBeNull();
+    expect(screen.getAllByRole('article').length).toBe(1);
   });
 
-  it('muestra un estado vacío cuando la búsqueda no tiene coincidencias', () => {
+  it('muestra un estado vacío cuando la búsqueda no coincide', async () => {
     render(<ProductGrid />);
+    await waitFor(() => expect(screen.getAllByRole('article').length).toBe(testProducts.length));
     fireEvent.change(screen.getByRole('searchbox', { name: /buscar productos/i }), {
       target: { value: 'producto inexistente' },
     });

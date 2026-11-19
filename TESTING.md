@@ -2,35 +2,31 @@
 
 ## Objetivo y alcance
 
-El proceso valida la lógica de persistencia y los resultados visibles en la interfaz. Combina Jasmine, Karma y Vitest con entornos DOM simulados; no requiere backend ni datos externos.
+El proceso valida el cliente REST, la sesión mínima local y los resultados visibles en la interfaz. Combina Jasmine, Karma y Vitest con entornos DOM simulados; las pruebas interceptan las solicitudes y no escriben en la API real.
 
 ## Entorno
 
-- Jasmine 5 ejecuta la lógica de `src/storage.spec.js`.
+- Jasmine 5 verifica sesión y jerarquía de roles en `src/storage.spec.js`.
 - Karma ejecuta Jasmine en jsdom y usa esbuild para transformar JSX en `src/components/Catalog.karma.spec.js`.
 - Vitest 2 y React Testing Library cubren interacciones de componentes y páginas.
-- `test/jasmine-setup.js` prepara jsdom para las pruebas de lógica; `src/test/setup.js` limpia `localStorage` y desmonta React Testing Library.
+- `test/jasmine-setup.js` prepara jsdom para las pruebas de lógica; `src/test/setup.js` limpia el almacenamiento de sesión y desmonta React Testing Library.
 
 ## Pruebas de componentes con Jasmine y Karma
 
-`src/components/Catalog.karma.spec.js` contiene diez casos:
+`src/components/Catalog.karma.spec.js` cubre:
 
-1. Renderizado del nombre recibido por props.
-2. Formato del precio.
-3. Visibilidad de la insignia de oferta.
-4. Ausencia de la insignia cuando no hay oferta.
-5. Bloqueo de la acción de carrito sin sesión.
-6. Persistencia y notificación al componente padre con sesión.
-7. Renderizado del catálogo completo.
-8. Filtrado por categoría.
-9. Búsqueda sin distinguir mayúsculas ni tildes.
-10. Mensaje de catálogo vacío.
+1. Renderizado de datos remotos del producto y formato de precio.
+2. Visibilidad de la insignia de oferta.
+3. Acción de compra deshabilitada mientras no exista API de carrito/pedidos.
+4. Carga del catálogo remoto.
+5. Filtrado por categoría y búsqueda sin distinguir mayúsculas ni tildes.
+6. Mensaje de catálogo vacío.
 
-Las pruebas usan `jasmine.createSpy` como mock de la función de notificación, y verifican tanto la llamada como los cambios en `localStorage`.
+Las pruebas sustituyen `fetch` con respuestas paginadas simuladas y comprueban que no se persista el catálogo en `localStorage`.
 
 ## Pruebas de interacción y mocks
 
-Vitest y Testing Library prueban además el registro y sus validaciones, el acceso por rol, la gestión de productos y permisos, la sincronización de sesión, y el carrito. `vi.fn()` verifica callbacks y `vi.spyOn(window, 'confirm')` simula la confirmación de acciones administrativas. Los casos interactúan con controles accesibles mediante etiquetas, roles y texto visible, evitando depender de detalles internos.
+Vitest y Testing Library prueban el contrato HTTP, el refresh JWT, la paginación, el registro, el inicio de sesión, la gestión remota de usuarios/productos/permisos, y los estados de funciones sin endpoint. `vi.fn()` simula respuestas de API y `vi.spyOn(window, 'confirm')` simula la confirmación de acciones administrativas. Los casos interactúan con controles accesibles mediante etiquetas, roles y texto visible.
 
 ## Ejecución y lectura de resultados
 
@@ -64,8 +60,8 @@ La compilación debe finalizar sin errores y generar el bundle de producción en
 
 ## Guion breve para la presentación individual
 
-1. Explicar que `App.jsx` conecta rutas y páginas; `Layout` conserva sesión/carrito; `ProductGrid` recibe props y maneja búsqueda, categoría y feedback con estado React.
-2. Mostrar en `ProductGrid.jsx` la grilla Bootstrap: una columna en móvil, dos desde `sm`, tres desde `lg` y cuatro desde `xl`; cada `ProductCard` recibe `producto` y `onAdded`.
-3. Ejecutar `npm run test:karma` y presentar los diez casos Jasmine: mocks con `jasmine.createSpy`, interacción en jsdom y comprobación del almacenamiento.
+1. Explicar que `api.js` centraliza las rutas y JWT, y que `storage.js` conserva solo la sesión.
+2. Mostrar cómo `ProductGrid.jsx` carga, filtra y presenta productos remotos en la grilla Bootstrap.
+3. Ejecutar `npm run test:karma` y presentar las respuestas simuladas de API en jsdom.
 4. Ejecutar `npm test`, explicar los resultados de los tres runners y abrir `coverage/vitest/index.html` para comentar cobertura y ramas pendientes.
 5. Cerrar con `npm run build` como comprobación de integración antes de publicar.

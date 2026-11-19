@@ -1,31 +1,42 @@
 import { useEffect, useMemo, useState } from 'react';
 import ProductCard from './ProductCard';
-import { getProducts } from '../storage';
+import { apiGetProducts } from '../api';
 
-export default function ProductGrid({ compact = false, onCartChange }) {
-  const [products, setProducts] = useState(getProducts);
+export default function ProductGrid({ compact = false, offersOnly = false }) {
+  const [products, setProducts] = useState([]);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('Todas');
-  const [added, setAdded] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const categories = ['Todas', ...new Set(products.map((producto) => producto.categoria))];
   const filtered = useMemo(() => products.filter((producto) => {
     const normalized = search.trim().toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const matchesSearch = producto.nombre.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalized);
     const matchesCategory = category === 'Todas' || producto.categoria === category;
-    return matchesSearch && matchesCategory;
-  }), [products, search, category]);
+    return matchesSearch && matchesCategory && (!offersOnly || producto.oferta);
+  }), [products, search, category, offersOnly]);
 
   useEffect(() => {
-    const refreshProducts = () => setProducts(getProducts());
+    let active = true;
+    const refreshProducts = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const remoteProducts = await apiGetProducts();
+        if (active) setProducts(remoteProducts);
+      } catch (requestError) {
+        if (active) setError(requestError.message);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
     window.addEventListener('productschange', refreshProducts);
-    return () => window.removeEventListener('productschange', refreshProducts);
+    refreshProducts();
+    return () => {
+      active = false;
+      window.removeEventListener('productschange', refreshProducts);
+    };
   }, []);
-
-  const handleAdded = (producto) => {
-    setAdded(producto.id);
-    onCartChange?.();
-    window.setTimeout(() => setAdded(null), 1000);
-  };
 
   return (
     <section className="catalog-section">
@@ -45,12 +56,13 @@ export default function ProductGrid({ compact = false, onCartChange }) {
       <div className="row g-4 catalog-products" id="products-container">
         {filtered.map((producto) => (
           <div className="col-12 col-sm-6 col-lg-4 col-xl-3" key={producto.id}>
-            <ProductCard producto={producto} onAdded={handleAdded} />
+            <ProductCard producto={producto} />
           </div>
         ))}
       </div>
-      {filtered.length === 0 && <p className="empty-state">No se encontraron productos para esa búsqueda.</p>}
-      {added && <p className="added-feedback" role="status">Producto agregado al carrito.</p>}
+      {loading && <p role="status">Cargando productos…</p>}
+      {error && <p className="error-msg" role="alert">{error}</p>}
+      {!loading && !error && filtered.length === 0 && <p className="empty-state">No se encontraron productos para esa búsqueda.</p>}
     </section>
   );
 }

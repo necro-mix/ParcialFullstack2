@@ -1,10 +1,18 @@
-import { useMemo, useState } from 'react';
-import { canViewRole, createProduct, deleteProduct, getProducts, getSession, getUserByEmail, getUserPermissions, getUserState, getUsers, saveUserPermissions, setUserState, updateProduct, updateUser } from '../storage';
+import { useEffect, useMemo, useState } from 'react';
+import { canViewRole, getSession, getUserByEmail } from '../storage';
 import OfferBadge from '../components/OfferBadge';
+import {
+  apiCreateProduct,
+  apiDeleteProduct,
+  apiGetProducts,
+  apiGetUserPermissions,
+  apiGetUsers,
+  apiSaveUserPermissions,
+  apiSetUserState,
+  apiUpdateProduct,
+  apiUpdateUser,
+} from '../api';
 
-const defaultPermissions = {
-  'ver-productos': true, comprar: true, 'ver-carrito': true, 'acceso-admin': false, 'editar-perfil': true, 'ver-historial': false,
-};
 const editablePermissions = [
   { key: 'acceso-admin', label: 'Acceso admin' },
   { key: 'editar-perfil', label: 'Editar perfil' },
@@ -13,65 +21,109 @@ const editablePermissions = [
 export default function Admin() {
   const session = getSession();
   const user = getUserByEmail(session?.correo);
-  const [users, setUsers] = useState(() => getUsers().filter((item) => canViewRole(user?.rol, item.rol)));
-  const [products, setProducts] = useState(getProducts());
+  const [users, setUsers] = useState([]);
+  const [products, setProducts] = useState([]);
   const [section, setSection] = useState('dashboard');
   const [selectedUser, setSelectedUser] = useState('');
-  const [permissions, setPermissions] = useState(defaultPermissions);
+  const [permissions, setPermissions] = useState({});
   const [editForm, setEditForm] = useState(null);
   const [productForm, setProductForm] = useState(null);
   const [productError, setProductError] = useState('');
   const [productMessage, setProductMessage] = useState('');
-  const stats = useMemo(() => ({ total: users.length, admins: users.filter((item) => item.rol === 'admin').length, active: users.filter((item) => getUserState(item.correo) === 'activo').length, blocked: users.filter((item) => getUserState(item.correo) === 'bloqueado').length }), [users]);
+  const [adminError, setAdminError] = useState('');
+  const stats = useMemo(() => ({
+    total: users.length,
+    admins: users.filter((item) => item.rol === 'admin').length,
+    active: users.filter((item) => item.estado === 'activo').length,
+    blocked: users.filter((item) => item.estado === 'bloqueado').length,
+  }), [users]);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([apiGetUsers(), apiGetProducts()])
+      .then(([remoteUsers, remoteProducts]) => {
+        if (!active) return;
+        const role = getUserByEmail(session?.correo)?.rol;
+        setUsers(remoteUsers.filter((item) => canViewRole(role, item.rol)));
+        setProducts(remoteProducts);
+      })
+      .catch((requestError) => {
+        if (active) setAdminError(requestError.message);
+      });
+    return () => { active = false; };
+  }, []);
 
   if (!user || !['admin', 'moderador'].includes(user.rol)) return <section className="container content-section"><h1>Acceso denied</h1><p>No tienes permisos para acceder al panel administrativo.</p></section>;
   const isAdmin = user.rol === 'admin';
-  const refreshUsers = () => {
+  const refreshUsers = async () => {
     const currentRole = getUserByEmail(session?.correo)?.rol;
-    setUsers(getUsers().filter((item) => canViewRole(currentRole, item.rol)));
+    const remoteUsers = await apiGetUsers();
+    const visibleUsers = remoteUsers.filter((item) => canViewRole(currentRole, item.rol));
+    setUsers(visibleUsers);
+    return visibleUsers;
   };
 
-  const toggleState = (correo) => {
-    const next = getUserState(correo) === 'activo' ? 'bloqueado' : 'activo';
-    setUserState(correo, next);
-    refreshUsers();
+  const toggleState = async (item) => {
+    const next = item.estado === 'activo' ? 'bloqueado' : 'activo';
+    try {
+      await apiSetUserState(item.id, next);
+      await refreshUsers();
+      setAdminError('');
+    } catch (requestError) {
+      setAdminError(requestError.message);
+    }
   };
 
-  const selectUser = (correo) => {
+  const selectUser = async (correo) => {
     setSelectedUser(correo);
-    setPermissions(getUserPermissions(correo));
+    try {
+      const target = users.find((item) => item.correo === correo);
+      if (!target) throw new Error('No se encontró el usuario seleccionado.');
+      setPermissions(await apiGetUserPermissions(target.id));
+      setAdminError('');
+    } catch (requestError) {
+      setAdminError(requestError.message);
+    }
   };
 
   const beginEdit = (item) => {
     setEditForm({
+      id: item.id,
       correo: item.correo,
       run: item.run,
       rol: item.rol,
     });
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     if (!editForm) return;
     const email = String(editForm.correo || '').trim();
     const run = String(editForm.run || '').trim();
     if (!email || !run) return;
 
-    updateUser(editForm.correo, {
-      correo: email,
-      run,
-      rol: editForm.rol,
-    });
-
-    refreshUsers();
-    setSelectedUser(email);
-    setPermissions(getUserPermissions(email));
-    setEditForm(null);
+    try {
+      const updates = { correo: email, run, rol: editForm.rol };
+      await apiUpdateUser(editForm.id, updates);
+      await refreshUsers();
+      setSelectedUser(email);
+      setEditForm(null);
+      setAdminError('');
+    } catch (requestError) {
+      setAdminError(requestError.message);
+    }
   };
 
-  const savePermissions = () => {
+  const savePermissions = async () => {
     if (!selectedUser) return;
-    saveUserPermissions(selectedUser, permissions);
-    refreshUsers();
+    try {
+      const target = users.find((item) => item.correo === selectedUser);
+      if (!target) throw new Error('No se encontró el usuario seleccionado.');
+      await apiSaveUserPermissions(target.id, permissions);
+      await refreshUsers();
+      setAdminError('');
+    } catch (requestError) {
+      setAdminError(requestError.message);
+    }
   };
 
   const beginProductEdit = (product) => {
@@ -80,7 +132,7 @@ export default function Admin() {
     setProductMessage('');
   };
 
-  const saveProduct = (event) => {
+  const saveProduct = async (event) => {
     event.preventDefault();
     const name = String(productForm?.nombre || '').trim();
     const category = String(productForm?.categoria || '').trim();
@@ -103,28 +155,30 @@ export default function Admin() {
 
     try {
       if (productForm.id === undefined) {
-        createProduct(product);
+        await apiCreateProduct(product);
         setProductMessage('Producto creado correctamente.');
       } else {
-        updateProduct(productForm.id, product);
+        await apiUpdateProduct(productForm.id, product);
         setProductMessage('Producto actualizado correctamente.');
       }
-      setProducts(getProducts());
+      setProducts(await apiGetProducts());
       setProductForm(null);
       setProductError('');
+      setAdminError('');
     } catch (error) {
       setProductError(error.message);
       setProductMessage('');
     }
   };
 
-  const removeProduct = (product) => {
+  const removeProduct = async (product) => {
     if (!window.confirm(`¿Eliminar el producto "${product.nombre}"?`)) return;
     try {
-      deleteProduct(product.id);
-      setProducts(getProducts());
+      await apiDeleteProduct(product.id);
+      setProducts(await apiGetProducts());
       setProductMessage('Producto eliminado correctamente.');
       setProductError('');
+      setAdminError('');
       if (productForm?.id === product.id) setProductForm(null);
     } catch (error) {
       setProductError(error.message);
@@ -144,8 +198,9 @@ export default function Admin() {
         </nav>
       </aside>
       <main className="admin-main">
+        {adminError && <p className="error-msg" role="alert">{adminError}</p>}
         {section === 'dashboard' && <section className="admin-section active"><div className="section-header"><h1>¡HOLA {isAdmin ? 'Administrador' : 'Moderador'}!</h1><p>Bienvenido al panel de administración de Farmacia de Raza</p></div><div className="dashboard-cards"><div className="stat-card"><h3>Total Usuarios</h3><p className="stat-number">{stats.total}</p></div><div className="stat-card"><h3>Administradores</h3><p className="stat-number">{stats.admins}</p></div><div className="stat-card"><h3>Usuarios Activos</h3><p className="stat-number">{stats.active}</p></div><div className="stat-card"><h3>Usuarios Bloqueados</h3><p className="stat-number">{stats.blocked}</p></div></div></section>}
-        {section === 'usuarios' && <section className="admin-section active"><div className="section-header"><h1>Gestión de Usuarios</h1><p>Administra todos los usuarios del sistema</p></div><div className="usuarios-container"><table className="usuarios-table"><thead><tr><th>Correo</th><th>RUN</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{users.map((item) => { const state = getUserState(item.correo); return <tr key={item.correo}><td>{item.correo}</td><td>{item.run}</td><td><span className={`rol-badge rol-${item.rol}`}>{item.rol === 'admin' ? 'Admin' : item.rol === 'moderador' ? 'Moderador' : 'Usuario'}</span></td><td><span className={`estado-badge estado-${state}`}>{state === 'activo' ? 'Activo' : 'Bloqueado'}</span></td><td><div className="tabla-acciones"><button className="btn-action btn-edit" type="button" onClick={() => beginEdit(item)}>Editar</button><button className="btn-action btn-block" type="button" onClick={() => toggleState(item.correo)}>{state === 'activo' ? 'Bloquear' : 'Desbloquear'}</button></div></td></tr>; })}</tbody></table>{editForm && <div className="edit-user-panel"><h3>Editar usuario</h3><div className="edit-user-grid"><div className="form-group"><label htmlFor="admin-edit-correo">Correo</label><input id="admin-edit-correo" value={editForm.correo} onChange={(event) => setEditForm((current) => ({ ...current, correo: event.target.value }))} /></div><div className="form-group"><label htmlFor="admin-edit-run">RUN</label><input id="admin-edit-run" value={editForm.run} onChange={(event) => setEditForm((current) => ({ ...current, run: event.target.value }))} /></div><div className="form-group"><label htmlFor="admin-edit-rol">Rol</label><select id="admin-edit-rol" value={editForm.rol} onChange={(event) => setEditForm((current) => ({ ...current, rol: event.target.value }))}><option value="usuario">Usuario</option><option value="moderador">Moderador</option><option value="admin" disabled={!isAdmin}>Admin</option></select></div></div><button className="btn-save" type="button" onClick={saveEdit}>Guardar cambios</button></div>}</div></section>}
+        {section === 'usuarios' && <section className="admin-section active"><div className="section-header"><h1>Gestión de Usuarios</h1><p>Administra todos los usuarios del sistema</p></div><div className="usuarios-container"><table className="usuarios-table"><thead><tr><th>Correo</th><th>RUN</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{users.map((item) => { const state = item.estado; return <tr key={item.id}><td>{item.correo}</td><td>{item.run}</td><td><span className={`rol-badge rol-${item.rol}`}>{item.rol === 'admin' ? 'Admin' : item.rol === 'moderador' ? 'Moderador' : 'Usuario'}</span></td><td><span className={`estado-badge estado-${state}`}>{state === 'activo' ? 'Activo' : 'Bloqueado'}</span></td><td><div className="tabla-acciones"><button className="btn-action btn-edit" type="button" onClick={() => beginEdit(item)}>Editar</button><button className="btn-action btn-block" type="button" onClick={() => toggleState(item)}>{state === 'activo' ? 'Bloquear' : 'Desbloquear'}</button></div></td></tr>; })}</tbody></table>{editForm && <div className="edit-user-panel"><h3>Editar usuario</h3><div className="edit-user-grid"><div className="form-group"><label htmlFor="admin-edit-correo">Correo</label><input id="admin-edit-correo" value={editForm.correo} onChange={(event) => setEditForm((current) => ({ ...current, correo: event.target.value }))} /></div><div className="form-group"><label htmlFor="admin-edit-run">RUN</label><input id="admin-edit-run" value={editForm.run} onChange={(event) => setEditForm((current) => ({ ...current, run: event.target.value }))} /></div><div className="form-group"><label htmlFor="admin-edit-rol">Rol</label><select id="admin-edit-rol" value={editForm.rol} onChange={(event) => setEditForm((current) => ({ ...current, rol: event.target.value }))}><option value="usuario">Usuario</option><option value="moderador">Moderador</option><option value="admin" disabled={!isAdmin}>Admin</option></select></div></div><button className="btn-save" type="button" onClick={saveEdit}>Guardar cambios</button></div>}</div></section>}
         {section === 'productos' && (
           <section className="admin-section active">
             <div className="section-header">

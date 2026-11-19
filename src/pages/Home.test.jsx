@@ -1,23 +1,43 @@
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import Layout from '../components/Layout';
+import { testProducts } from '../test/catalog-fixtures';
 import Home from './Home';
 
+beforeEach(() => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: async () => ({
+      count: testProducts.length,
+      next: null,
+      previous: null,
+      results: testProducts.map((product) => ({
+        id: product.id,
+        name: product.nombre,
+        price: product.precio,
+        image: product.src,
+        category: product.categoria,
+        is_offer: product.oferta,
+      })),
+    }),
+  }));
+});
+
+afterEach(() => vi.unstubAllGlobals());
+
 describe('Home', () => {
-  it('agrega productos sin romper Inicio y sincroniza el contador del carrito', async () => {
-    const user = userEvent.setup();
-    localStorage.setItem('sesionActiva', JSON.stringify({ correo: 'usuario@ejemplo.com' }));
+  it('carga el catálogo remoto y no simula carrito sin endpoint API', async () => {
     render(
       <MemoryRouter>
         <Layout><Home /></Layout>
       </MemoryRouter>
     );
 
-    await user.click(screen.getAllByRole('button', { name: /añadir al carrito/i })[0]);
-
-    expect(await screen.findByRole('link', { name: /mi carrito, 1 productos/i })).toBeInTheDocument();
-    expect(JSON.parse(localStorage.getItem('carrito_usuario@ejemplo.com'))).toHaveLength(1);
+    expect(await screen.findByRole('heading', { name: 'Paracetamol 500 mg' })).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /compras no disponibles/i })[0]).toBeDisabled();
+    expect(screen.getByRole('status', { name: /carrito no disponible/i })).toBeInTheDocument();
+    expect(localStorage.length).toBe(0);
   });
 });
