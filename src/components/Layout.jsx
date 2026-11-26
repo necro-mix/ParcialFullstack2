@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { getSession, getUserByEmail, logoutUser } from '../storage';
+import { apiGetCart } from '../api';
 
 const Icon = ({ name }) => {
   const icons = {
-    cart: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zm-9.83-3.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z',
+    cart: 'M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z',
     plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z',
   };
   return <svg className="icon-svg" viewBox="0 0 24 24" aria-hidden="true"><path d={icons[name]} /></svg>;
@@ -13,30 +14,58 @@ const Icon = ({ name }) => {
 export default function Layout({ children }) {
   const navigate = useNavigate();
   const [session, setSession] = useState(getSession());
+  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const syncSessionState = () => {
       setSession(getSession());
     };
 
-    const onStorage = () => syncSessionState();
-    const onSessionChange = () => syncSessionState();
+    const syncCartCount = async () => {
+      const token = localStorage.getItem('apiAccessToken');
+      if (!token) {
+        setCartCount(0);
+        return;
+      }
+      try {
+        const cart = await apiGetCart();
+        const count = cart.items.reduce((acc, item) => acc + item.cantidad, 0);
+        setCartCount(count);
+      } catch {
+        setCartCount(0);
+      }
+    };
+
+    const onStorage = () => {
+      syncSessionState();
+      syncCartCount();
+    };
+    const onSessionChange = () => {
+      syncSessionState();
+      syncCartCount();
+    };
     const onUsersChange = () => syncSessionState();
+    const onCartChange = () => syncCartCount();
+
+    syncCartCount();
 
     window.addEventListener('storage', onStorage);
     window.addEventListener('sessionchange', onSessionChange);
     window.addEventListener('userschange', onUsersChange);
+    window.addEventListener('cartchange', onCartChange);
 
     return () => {
       window.removeEventListener('storage', onStorage);
       window.removeEventListener('sessionchange', onSessionChange);
       window.removeEventListener('userschange', onUsersChange);
+      window.removeEventListener('cartchange', onCartChange);
     };
   }, []);
 
   const handleLogout = async () => {
     logoutUser();
     setSession(null);
+    setCartCount(0);
     await navigate('/');
   };
 
@@ -59,17 +88,17 @@ export default function Layout({ children }) {
         <nav className="nav-links" aria-label="Navegación principal">
           <NavLink to="/" end>Inicio</NavLink>
           <NavLink to="/nosotros">Nosotros</NavLink>
-          <NavLink to="/blogs">Salud &amp; Blog</NavLink>
+          <NavLink to="/blogs">Salud & Blog</NavLink>
           <NavLink to="/contacto">Contacto</NavLink>
           {!session && <NavLink to="/login">Iniciar Sesión</NavLink>}
           {!session && <NavLink to="/registro">Crear Cuenta</NavLink>}
           {canAccessAdmin && <NavLink to="/admin" className="admin-link">Panel Admin</NavLink>}
           {session && <button id="nav-logout" type="button" onClick={handleLogout}>Cerrar Sesión</button>}
         </nav>
-        <div className="cart-status" role="status" aria-label="Carrito no disponible">
+        <Link to="/carrito" className="cart-status" aria-label="Ver carrito">
           <Icon name="cart" />
-          <span>Carrito no disponible</span>
-        </div>
+          <span>Carrito ({cartCount})</span>
+        </Link>
       </header>
       <main>{children}</main>
       <footer>
@@ -87,7 +116,7 @@ export default function Layout({ children }) {
             <ul><li><Link to="/contacto">Centro de Ayuda</Link></li><li><Link to="/login">Acceso Clientes</Link></li><li><Link to="/registro">Registro de Usuarios</Link></li></ul>
           </div>
           <div className="footer-col">
-            <h5>Legal &amp; Calidad</h5>
+            <h5>Legal & Calidad</h5>
             <ul><li><Link to="/">Términos y Condiciones</Link></li><li><Link to="/">Política de Privacidad</Link></li><li><Link to="/">Resolución Sanitaria</Link></li></ul>
           </div>
         </div>

@@ -294,3 +294,61 @@ export async function apiSaveUserPermissions(id, permissions) {
   });
   emit('userschange');
 }
+export async function apiGetCart() {
+  const data = await request('/api/cart/');
+  const items = Array.isArray(data?.items)
+    ? data.items.map((item) => ({
+        id: item.id,
+        productId: item.product,
+        cantidad: item.quantity,
+        subtotal: item.subtotal,
+        producto: item.product_detail ? normalizeProduct(item.product_detail) : null,
+      }))
+    : [];
+  return {
+    id: data?.id,
+    items,
+    total: Number(data?.total || 0),
+  };
+}
+
+export async function apiAddToCart(productId, quantity = 1) {
+  const result = await request('/api/cart/items/', {
+    method: 'POST',
+    body: { product: productId, quantity },
+  });
+  emit('cartchange');
+  return result;
+}
+
+export async function apiUpdateCartItem(itemId, quantity) {
+  const result = await request(`/api/cart/items/${encodeURIComponent(itemId)}/`, {
+    method: 'PATCH',
+    body: { quantity },
+  });
+  emit('cartchange');
+  return result;
+}
+
+export async function apiRemoveCartItem(itemId) {
+  await request(`/api/cart/items/${encodeURIComponent(itemId)}/`, {
+    method: 'DELETE',
+  });
+  emit('cartchange');
+}
+
+export async function apiClearCart() {
+  await request('/api/cart/', { method: 'DELETE' });
+  emit('cartchange');
+}
+
+export async function apiCheckoutCart() {
+  const order = await request('/api/cart/checkout/', { method: 'POST' });
+  emit('cartchange');
+  return order;
+}
+
+export async function apiGetOrders() {
+  const orders = await request('/api/orders/');
+  return Array.isArray(orders) ? orders : [];
+}
